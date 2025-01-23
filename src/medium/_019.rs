@@ -26,34 +26,23 @@ impl Solution {
 
         res
     }
-
-    pub fn alt(head: Option<Box<ListNode>>, n: i32) -> Option<Box<ListNode>> {
-        let mut ptr: Option<Box<ListNode>> = head;
-
-        let mut node_container: Vec<Box<ListNode>> = vec![];
-
-        while let Some(mut node) = ptr {
-            ptr = node.next.take();
-
-            node_container.push(node);
-        }
-
-        let mut modified_head: Option<Box<ListNode>> = None;
-
-        // n is 1-based, but the vector enumeration is 0-based
-        let nth: usize = (n - 1) as usize;
-
-        // rust provides double ended iterator for vec, hence we can just use rev
-        // with zero overhead instead of working with indices
-        for (idx, mut node) in node_container.into_iter().rev().enumerate() {
-            if idx != nth {
-                node.next = modified_head;
-
-                modified_head = Some(node);
+    pub fn remove_nth_from_end_alt(head: Option<Box<ListNode>>, n: i32) -> Option<Box<ListNode>> {
+        fn recurse(head: Option<Box<ListNode>>, n: i32) -> (Option<Box<ListNode>>, usize) {
+            match head {
+                None => (None, 1),
+                Some(mut node) => {
+                    let (prev, num) = recurse(node.next.take(), n);
+                    if n == num as i32 {
+                        (prev, num + 1)
+                    } else {
+                        node.next = prev;
+                        (Some(node), num + 1)
+                    }
+                }
             }
         }
 
-        modified_head
+        recurse(head, n).0
     }
 }
 
@@ -69,6 +58,6 @@ mod tests {
         let res: Option<Box<ListNode>> = list![1, 2, 3, 4];
         let n: i32 = 1;
 
-        assert_eq!(Solution::alt(head, n), res);
+        assert_eq!(Solution::remove_nth_from_end_alt(head, n), res);
     }
 }
