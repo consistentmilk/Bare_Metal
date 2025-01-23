@@ -4,21 +4,25 @@ pub struct Solution;
 
 impl Solution {
     pub fn length_of_longest_substring_opt(s: String) -> i32 {
-        let mut start: i32 = 0;
+        let mut chr_tbl: [i32; 128] = [-1; 128];
+        let mut lp: i32 = 0;
         let mut max_len: i32 = 0;
-        let mut char_indices: [i32; 128] = [-1; 128];
 
-        for (i, c) in s.chars().enumerate() {
-            let index: i32 = char_indices[c as usize];
-            if index != -1 {
-                start = std::cmp::max(start, index + 1);
+        for (rp, ch) in s.as_bytes().iter().enumerate() {
+            if chr_tbl[*ch as usize] >= lp {
+                lp = chr_tbl[*ch as usize] + 1;
+            } else {
+                let curr_len: i32 = rp as i32 - lp + 1;
+
+                if curr_len > max_len {
+                    max_len = curr_len;
+                }
             }
 
-            char_indices[c as usize] = i as i32;
-            max_len = std::cmp::max(max_len, i as i32 - start + 1);
+            chr_tbl[*ch as usize] = rp as i32;
         }
 
-        max_len as i32
+        max_len
     }
 
     pub fn length_of_longest_substring(s: String) -> i32 {
