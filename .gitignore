@@ -1,0 +1,8 @@
+/story
+/target
+.vscode
+/src/testing.rs
+/concepts
+/.mypy_cache
+test.java
+test.py
