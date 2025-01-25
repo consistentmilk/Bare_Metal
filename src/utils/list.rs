@@ -36,6 +36,11 @@ pub trait ListMaker {
 impl ListMaker for ListLink {}
 
 pub fn list_printer(head: Option<Box<ListNode>>) {
+    if head.is_none() {
+        println!("Empty List.");
+        return;
+    }
+
     let mut ptr: Option<Box<ListNode>> = head;
     let mut linked_list_str: String = String::new();
 
