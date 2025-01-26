@@ -1,4 +1,3 @@
 pub mod doubly_linked_list;
-pub mod one;
-pub mod three;
-pub mod two;
+pub mod linked_list;
+pub mod test_list;
