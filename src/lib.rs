@@ -1,4 +1,5 @@
 #![feature(allocator_api)]
+#![feature(box_into_inner)]
 pub mod contests;
 pub mod easy;
 pub mod exercism;

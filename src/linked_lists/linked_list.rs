@@ -1,5 +1,5 @@
 use core::ptr::NonNull;
-use std::alloc::{Allocator, Global, Layout};
+use std::alloc::{Allocator, Global};
 use std::marker::PhantomData;
 
 pub struct LinkedList<T, A: Allocator = Global> {
@@ -57,25 +57,13 @@ impl<T, A: Allocator> LinkedList<T, A> {
     }
 
     pub fn pop_front(&mut self) -> Option<T> {
-        fn into_inner<T, A: Allocator>(boxed: Box<T, A>) -> T {
-            let (ptr, alloc) = Box::into_raw_with_allocator(boxed);
-            let unboxed: T = unsafe { ptr.read() };
-
-            unsafe {
-                let non_null = NonNull::new_unchecked(ptr);
-                alloc.deallocate(non_null.cast(), Layout::new::<T>());
-            }
-
-            unboxed
-        }
-
         unsafe {
             match self.front {
                 None => None,
 
                 Some(node) => {
-                    let boxed_node = Box::from_raw_in(node.as_ptr(), &self.alloc);
-                    let node = into_inner(boxed_node);
+                    let boxed_node: Box<Node<T>, &A> = Box::from_raw_in(node.as_ptr(), &self.alloc);
+                    let node: Node<T> = Box::into_inner(boxed_node);
                     let res: T = node.data;
 
                     self.front = node.back;

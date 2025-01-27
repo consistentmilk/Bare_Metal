@@ -1,3 +1,5 @@
+1-27-2025 -> Moved to nightly, allocator_api, miri tests and usage of unstable features
+
 We want to run commands from the root, because of the utils module. Various problems related to Linked Lists and Binary Search Trees depend on the structs and macros provided by this module.
 
 Root CMD commands:

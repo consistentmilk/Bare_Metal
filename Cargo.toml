@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-allocator-api2 = "0.2.21"
 anyhow = "1.0.86"
 clap = { version = "4.5.23", features = ["cargo", "derive"] }
 divan = "0.1.17"
