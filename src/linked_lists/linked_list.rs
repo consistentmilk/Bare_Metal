@@ -1,10 +1,6 @@
 use core::ptr::NonNull;
+use std::alloc::{Allocator, Global, Layout};
 use std::marker::PhantomData;
-
-use allocator_api2::{
-    alloc::{Allocator, Global, Layout},
-    boxed::Box,
-};
 
 pub struct LinkedList<T, A: Allocator = Global> {
     front: Option<NonNull<Node<T>>>,

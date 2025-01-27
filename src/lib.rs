@@ -1,3 +1,4 @@
+#![feature(allocator_api)]
 pub mod contests;
 pub mod easy;
 pub mod exercism;
