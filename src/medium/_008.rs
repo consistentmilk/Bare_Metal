@@ -2,12 +2,70 @@ pub struct Solution {}
 
 #[derive(Debug)]
 pub enum State {
-    StartParsing,
+    Start,
     SignParsed,
     ParsingDigits,
 }
 
 impl Solution {
+    pub fn my_atoi(s: String) -> i32 {
+        let mut res: i32 = 0;
+        let mut state: State = State::Start;
+        let mut sign: i32 = 1;
+        let char_bytes: &[u8] = s.as_bytes();
+
+        for char_byte in char_bytes.iter() {
+            match state {
+                State::Start => match char_byte {
+                    b' ' => {
+                        continue;
+                    }
+
+                    b'+' => {
+                        state = State::SignParsed;
+                    }
+
+                    b'-' => {
+                        state = State::SignParsed;
+                        sign = -1;
+                    }
+
+                    b'0'..=b'9' => {
+                        res = res
+                            .saturating_mul(10)
+                            .saturating_add((*char_byte - b'0') as i32 * sign);
+                        state = State::ParsingDigits;
+                    }
+
+                    _ => return 0,
+                },
+
+                State::SignParsed => match char_byte {
+                    b'0'..=b'9' => {
+                        res = res
+                            .saturating_mul(10)
+                            .saturating_add((*char_byte - b'0') as i32 * sign);
+                        state = State::ParsingDigits;
+                    }
+
+                    _ => return 0,
+                },
+
+                State::ParsingDigits => match char_byte {
+                    b'0'..=b'9' => {
+                        res = res
+                            .saturating_mul(10)
+                            .saturating_add((*char_byte - b'0') as i32 * sign);
+                    }
+
+                    _ => return res,
+                },
+            }
+        }
+
+        res
+    }
+
     pub fn atoi(s: String) -> i32 {
         let s: &str = s.trim_start();
 
@@ -31,13 +89,13 @@ impl Solution {
         }
 
         let mut value: i32 = 0;
-        let mut state: State = State::StartParsing;
+        let mut state: State = State::Start;
         let mut sign: i32 = 1;
         let mut it: std::str::Chars<'_> = s.chars();
 
         while let Some(curr_ch) = it.next() {
             match state {
-                State::StartParsing => match curr_ch {
+                State::Start => match curr_ch {
                     ' ' => {
                         continue;
                     }
@@ -83,18 +141,18 @@ impl Solution {
         value
     }
 
-    pub fn my_atoi(s: String) -> i32 {
+    pub fn __my_atoi(s: String) -> i32 {
         if s.is_empty() {
             return 0;
         }
 
         let mut res: i32 = 0;
         let mut sign: i32 = 1;
-        let mut state: State = State::StartParsing;
+        let mut state: State = State::Start;
 
         for ch in s.chars() {
             match state {
-                State::StartParsing => match ch {
+                State::Start => match ch {
                     ' ' => {
                         continue;
                     }
