@@ -1,5 +1,3 @@
-use tracing::info;
-
 pub struct Solution;
 
 impl Solution {
@@ -60,18 +58,15 @@ impl Solution {
         dp[0][0] = grid[0][0];
 
         for i in 1..rows {
-            info!("{:?}", dp);
             dp[i][0] = dp[i - 1][0] + grid[i][0];
         }
 
         for j in 1..cols {
-            info!("{:?}", dp);
             dp[0][j] = dp[0][j - 1] + grid[0][j];
         }
 
         for i in 1..rows {
             for j in 1..cols {
-                info!("{:?}", dp);
                 dp[i][j] = i32::min(dp[i - 1][j], dp[i][j - 1]) + grid[i][j];
             }
         }

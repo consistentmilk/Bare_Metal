@@ -1,5 +1,7 @@
 #![feature(allocator_api)]
 #![feature(box_into_inner)]
+#![feature(extend_one)]
+#![feature(min_specialization)]
 pub mod contests;
 pub mod easy;
 pub mod exercism;
