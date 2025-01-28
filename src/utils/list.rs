@@ -10,6 +10,18 @@ impl ListNode {
     pub fn new(val: i32) -> Self {
         Self { val, next: None }
     }
+
+    pub fn list_to_vec(head: Option<Box<ListNode>>) -> Vec<i32> {
+        let mut ptr: Option<Box<ListNode>> = head;
+        let mut res: Vec<i32> = Vec::new();
+
+        while let Some(node) = ptr {
+            res.push(node.val);
+            ptr = node.next;
+        }
+
+        res
+    }
 }
 
 #[macro_export]
