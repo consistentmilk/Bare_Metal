@@ -58,53 +58,39 @@ impl SolutionAlt {
             return vec![-1, -1];
         }
 
-        let left: i32 = Self::find_left(&nums, target);
+        let left = Self::find_bound(&nums, target, true); // Find leftmost occurrence
         if left == -1 {
-            return vec![-1, -1];
+            return vec![-1, -1]; // Target not found
         }
-
-        let right: i32 = Self::find_right(&nums, target);
-
+        let right = Self::find_bound(&nums, target, false); // Find rightmost occurrence
         vec![left, right]
     }
 
-    fn find_left(nums: &[i32], target: i32) -> i32 {
-        let mut left: usize = 0;
-        let mut right: usize = nums.len();
+    fn find_bound(nums: &[i32], target: i32, is_left: bool) -> i32 {
+        let mut left = 0;
+        let mut right = nums.len();
 
         while left < right {
-            let mid: usize = left + (right - left) / 2;
-            if nums[mid] < target {
-                left = mid + 1;
-            } else {
-                right = mid;
-            }
-        }
-
-        if left == nums.len() || nums[left] != target {
-            -1
-        } else {
-            left as i32
-        }
-    }
-
-    fn find_right(nums: &[i32], target: i32) -> i32 {
-        let mut left: usize = 0;
-        let mut right: usize = nums.len();
-
-        while left < right {
-            let mid: usize = left + (right - left) / 2;
-            if nums[mid] > target {
+            let mid = left + (right - left) / 2;
+            if nums[mid] > target || (is_left && nums[mid] == target) {
                 right = mid;
             } else {
                 left = mid + 1;
             }
         }
 
-        if right == 0 || nums[right - 1] != target {
-            -1
+        if is_left {
+            if left == nums.len() || nums[left] != target {
+                -1
+            } else {
+                left as i32
+            }
         } else {
-            (right - 1) as i32
+            if left == 0 || nums[left - 1] != target {
+                -1
+            } else {
+                (left - 1) as i32
+            }
         }
     }
 }
