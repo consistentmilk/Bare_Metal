@@ -17,70 +17,82 @@ pub struct SolutionAlt;
 /// Uses two pointer method
 impl SolutionAlt {
     pub fn reverse_words(s: String) -> String {
-        if s.is_empty() {
-            return String::new();
-        }
+        // Convert the string into a mutable Vec<u8> for in-place manipulation
+        let mut s: Vec<u8> = s.into_bytes();
 
-        let mut a: Vec<char> = s.chars().collect();
-        let n: usize = a.len();
+        // Trim leading and trailing spaces
+        let trimmed_len: usize = Self::trim_spaces(&mut s);
 
-        // Step 1: Reverse the whole string
-        Self::reverse(&mut a, 0, n - 1);
-        // Step 2: Reverse each word
-        Self::reverse_words_inplace(&mut a, n);
-        // Step 3: Clean up spaces
-        Self::clean_spaces(&mut a, n)
+        // Reverse the entire string
+        Self::reverse_range(&mut s, 0, trimmed_len);
+
+        // Reverse each word individually
+        Self::reverse_each_word(&mut s, trimmed_len);
+
+        // Convert the Vec<u8> back to a String
+        unsafe { String::from_utf8_unchecked(s) }
     }
 
-    fn reverse_words_inplace(a: &mut [char], n: usize) {
-        let mut i: usize = 0;
-        let mut j: usize = 0;
+    // Helper function to trim leading and trailing spaces
+    fn trim_spaces(s: &mut Vec<u8>) -> usize {
+        let mut write_idx: usize = 0;
+        let mut read_idx: usize = 0;
+        let n = s.len();
 
-        while i < n {
-            while i < j || (i < n && a[i] == ' ') {
-                i += 1; // Skip spaces
+        // Skip leading spaces
+        while read_idx < n && s[read_idx] == b' ' {
+            read_idx += 1;
+        }
+
+        // Copy non-space characters and ensure single spaces between words
+        while read_idx < n {
+            if s[read_idx] != b' ' {
+                s[write_idx] = s[read_idx];
+                write_idx += 1;
+            } else if write_idx > 0 && s[write_idx - 1] != b' ' {
+                s[write_idx] = b' ';
+                write_idx += 1;
             }
+            read_idx += 1;
+        }
 
-            while j < i || (j < n && a[j] != ' ') {
-                j += 1; // Skip non-spaces
-            }
+        // Remove trailing space if any
+        if write_idx > 0 && s[write_idx - 1] == b' ' {
+            write_idx -= 1;
+        }
 
-            Self::reverse(a, i, j - 1); // Reverse the word
+        // Truncate the vector to the new length
+        s.truncate(write_idx);
+
+        write_idx
+    }
+
+    // Helper function to reverse a range of the vector
+    fn reverse_range(s: &mut Vec<u8>, mut left: usize, mut right: usize) {
+        while left < right {
+            s.swap(left, right - 1);
+            left += 1;
+            right -= 1;
         }
     }
 
-    // Trim leading, trailing, and multiple spaces
-    fn clean_spaces(a: &mut [char], n: usize) -> String {
-        let mut i: usize = 0;
-        let mut j: usize = 0;
+    // Helper function to reverse each word in the vector
+    fn reverse_each_word(s: &mut Vec<u8>, n: usize) {
+        let mut start: usize = 0;
+        let mut end: usize = 0;
 
-        while j < n {
-            while j < n && a[j] == ' ' {
-                j += 1; // Skip spaces
+        while end < n {
+            // Find the end of the current word
+            while end < n && s[end] != b' ' {
+                end += 1;
             }
-            while j < n && a[j] != ' ' {
-                a[i] = a[j];
-                i += 1;
-                j += 1; // Keep non-spaces
-            }
-            while j < n && a[j] == ' ' {
-                j += 1; // Skip spaces
-            }
-            if j < n {
-                a[i] = ' ';
-                i += 1; // Keep only one space
-            }
-        }
 
-        a[..i].iter().collect()
-    }
+            // Reverse the current word
+            Self::reverse_range(s, start, end);
 
-    // Reverse a[] from a[i] to a[j]
-    fn reverse(a: &mut [char], mut i: usize, mut j: usize) {
-        while i < j {
-            a.swap(i, j);
-            i += 1;
-            j -= 1;
+            // Move to the next word
+            start = end + 1;
+            end = start;
         }
     }
 }
