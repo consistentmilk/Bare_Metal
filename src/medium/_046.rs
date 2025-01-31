@@ -1,60 +1,159 @@
 pub struct Solution {}
 
 impl Solution {
-    pub fn permute(nums: Vec<i32>) -> Vec<Vec<i32>> {
-        let mut result: Vec<Vec<i32>> = Vec::new();
+    pub fn permute(mut nums: Vec<i32>) -> Vec<Vec<i32>> {
+        let n: usize = nums.len();
+        let mut result = Vec::new();
 
-        Self::backtrack(nums, vec![], &mut result);
+        fn backtrack(nums: &mut Vec<i32>, lp: usize, rp: usize, result: &mut Vec<Vec<i32>>) {
+            if lp == rp {
+                result.push(nums.clone());
+                return;
+            }
+
+            for i in lp..=rp {
+                // Swap elements
+                nums.swap(lp, i);
+
+                // Recursive call
+                backtrack(nums, lp + 1, rp, result);
+
+                // Backtrack by swapping back
+                nums.swap(lp, i);
+            }
+        }
+
+        backtrack(&mut nums, 0, n - 1, &mut result);
 
         result
     }
 
-    fn backtrack(nums: Vec<i32>, path: Vec<i32>, result: &mut Vec<Vec<i32>>) {
-        if nums.is_empty() {
-            result.push(path);
-
-            return;
-        }
-
-        for i in 0..nums.len() {
-            let mut new_nums: Vec<i32> = nums.clone();
-
-            new_nums.remove(i);
-
-            let mut new_path: Vec<i32> = path.clone();
-
-            new_path.push(nums[i]);
-
-            Self::backtrack(new_nums, new_path, result);
-        }
-    }
-
+    /// Heap's algorithm for generating permutations
+    /// Produced permutations do not follow the same order as
+    /// the backtracking based solution.
     pub fn permute_alt(mut nums: Vec<i32>) -> Vec<Vec<i32>> {
-        let len: usize = nums.len();
+        let mut res: Vec<Vec<i32>> = Vec::with_capacity(720);
+        res.push(nums.clone());
 
-        let mut permutations: Vec<Vec<i32>> = vec![nums.clone()];
-
-        let mut p: Vec<usize> = (0..=len).collect();
+        let n: usize = nums.len();
+        let mut c: Vec<usize> = vec![0; n];
         let mut i: usize = 1;
-        let mut j: usize;
 
-        while i < len {
-            p[i] -= 1;
-            j = (i % 2) * p[i];
+        while i < n {
+            if c[i] < i {
+                if i % 2 == 0 {
+                    nums.swap(0, i);
+                } else {
+                    nums.swap(c[i], i);
+                }
 
-            let tmp: i32 = nums[i];
-            nums[i] = nums[j];
-            nums[j] = tmp;
+                res.push(nums.clone());
 
-            permutations.push(nums.clone());
-
-            i = 1;
-
-            while p[i] == 0 {
-                p[i] = i;
+                c[i] += 1;
+                i = 1;
+            } else {
+                c[i] = 0;
                 i += 1;
             }
         }
-        permutations
+
+        res
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_46_1() {
+        let nums: Vec<i32> = vec![1, 2, 3];
+        let mut expected: Vec<Vec<i32>> = [
+            [1, 2, 3],
+            [1, 3, 2],
+            [2, 1, 3],
+            [2, 3, 1],
+            [3, 2, 1],
+            [3, 1, 2],
+        ]
+        .iter()
+        .map(|v: &[i32; 3]| v.to_vec())
+        .collect::<Vec<Vec<i32>>>();
+        expected.sort();
+
+        let mut res: Vec<Vec<i32>> = Solution::permute(nums);
+        res.sort();
+
+        assert_eq!(expected, res);
+    }
+
+    #[test]
+    fn test_46_2() {
+        let nums: Vec<i32> = vec![0, 1];
+        let mut expected: Vec<Vec<i32>> = vec![vec![0, 1], vec![1, 0]];
+        expected.sort();
+
+        let mut res: Vec<Vec<i32>> = Solution::permute(nums);
+        res.sort();
+
+        assert_eq!(expected, res);
+    }
+
+    #[test]
+    fn test_46_3() {
+        let nums: Vec<i32> = vec![1];
+        let mut expected: Vec<Vec<i32>> = vec![vec![1]];
+        expected.sort();
+
+        let mut res: Vec<Vec<i32>> = Solution::permute(nums);
+        res.sort();
+
+        assert_eq!(expected, res);
+    }
+
+    #[test]
+    fn test_46_4() {
+        let nums: Vec<i32> = vec![1, 2, 3];
+        let mut expected: Vec<Vec<i32>> = [
+            [1, 2, 3],
+            [1, 3, 2],
+            [2, 1, 3],
+            [2, 3, 1],
+            [3, 2, 1],
+            [3, 1, 2],
+        ]
+        .iter()
+        .map(|v: &[i32; 3]| v.to_vec())
+        .collect::<Vec<Vec<i32>>>();
+        expected.sort();
+
+        let mut res: Vec<Vec<i32>> = Solution::permute_alt(nums);
+        res.sort();
+
+        assert_eq!(expected, res);
+    }
+
+    #[test]
+    fn test_46_5() {
+        let nums: Vec<i32> = vec![0, 1];
+        let mut expected: Vec<Vec<i32>> = vec![vec![0, 1], vec![1, 0]];
+        expected.sort();
+
+        let mut res: Vec<Vec<i32>> = Solution::permute_alt(nums);
+        res.sort();
+
+        assert_eq!(expected, res);
+    }
+
+    #[test]
+    fn test_46_6() {
+        let nums: Vec<i32> = vec![1];
+        let mut expected: Vec<Vec<i32>> = vec![vec![1]];
+        expected.sort();
+
+        let mut res: Vec<Vec<i32>> = Solution::permute_alt(nums);
+        res.sort();
+
+        assert_eq!(expected, res);
     }
 }
