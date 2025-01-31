@@ -3,7 +3,7 @@ pub struct Solution {}
 impl Solution {
     pub fn permute(mut nums: Vec<i32>) -> Vec<Vec<i32>> {
         let n: usize = nums.len();
-        let mut result = Vec::new();
+        let mut result: Vec<Vec<i32>> = Vec::new();
 
         fn backtrack(nums: &mut Vec<i32>, lp: usize, rp: usize, result: &mut Vec<Vec<i32>>) {
             if lp == rp {
