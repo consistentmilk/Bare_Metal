@@ -26,6 +26,7 @@ impl<K: Ord, V> Node<K, V> {
 #[derive(Debug)]
 pub struct BinarySearchTree<K: Ord, V, A: Allocator = Global> {
     root: *mut Node<K, V>,
+    len: usize,
     allocator: A,
 }
 
@@ -41,8 +42,17 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
     pub fn new_with_allocator(allocator: A) -> Self {
         BinarySearchTree {
             root: null_mut(),
+            len: 0,
             allocator,
         }
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
 
     // Allocate a new node using the custom allocator
@@ -110,6 +120,9 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
                     }
                 }
             }
+
+            self.len += 1;
+
             Ok(())
         }
     }
@@ -135,22 +148,23 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
 
     // In-order traversal (iterative)
     pub fn inorder_traversal(&self) -> Vec<(&K, &V)> {
-        let mut result: Vec<(&K, &V)> = Vec::new();
-        let mut stack: Vec<*mut Node<K, V>> = Vec::new();
+        let mut result: Vec<(&K, &V)> = Vec::with_capacity(self.len);
+        let mut stack: Vec<*mut Node<K, V>> = Vec::with_capacity(self.len);
         let mut current: *mut Node<K, V> = self.root;
 
         unsafe {
             while !current.is_null() || !stack.is_empty() {
-                // Traverse to the leftmost node
                 while !current.is_null() {
                     stack.push(current);
+
                     current = (*current).left;
                 }
-                // Visit the node
-                current = stack.pop().unwrap();
-                result.push((&(*current).key, &(*current).value));
-                // Move to the right subtree
-                current = (*current).right;
+
+                if let Some(node) = stack.pop() {
+                    result.push((&(*node).key, &(*node).value));
+
+                    current = (*node).right;
+                }
             }
         }
 
@@ -271,6 +285,8 @@ mod tests {
             (&10, &"Ten"),
             (&15, &"Fifteen"),
         ];
+
+        assert_eq!(bst.len(), 5);
         assert_eq!(bst.inorder_traversal(), expected);
     }
 
