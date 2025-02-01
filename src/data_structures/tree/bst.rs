@@ -174,8 +174,107 @@ impl<K: Ord, V, A: Allocator> Drop for BinarySearchTree<K, V, A> {
 #[macro_export]
 macro_rules! btree {
     ($($key:expr => $value:expr),* $(,)?) => {{
+        #[allow(unused)]
         let mut bst = BinarySearchTree::new();
         $(bst.insert($key, $value);)*
         bst
     }};
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_empty_tree() {
+        let bst: BinarySearchTree<i32, &str> = BinarySearchTree::new();
+        assert!(bst.root.is_null());
+        assert_eq!(bst.search(10), None);
+        assert_eq!(bst.inorder_traversal(), vec![]);
+    }
+
+    #[test]
+    fn test_insert_and_search() {
+        let mut bst = BinarySearchTree::new();
+        bst.insert(10, "Ten");
+        bst.insert(5, "Five");
+        bst.insert(15, "Fifteen");
+
+        assert_eq!(bst.search(10), Some(&"Ten"));
+        assert_eq!(bst.search(5), Some(&"Five"));
+        assert_eq!(bst.search(15), Some(&"Fifteen"));
+        assert_eq!(bst.search(20), None);
+    }
+
+    #[test]
+    fn test_duplicate_keys() {
+        let mut bst = BinarySearchTree::new();
+        bst.insert(10, "Ten");
+        bst.insert(10, "New Ten");
+
+        assert_eq!(bst.search(10), Some(&"New Ten"));
+    }
+
+    #[test]
+    fn test_inorder_traversal() {
+        let mut bst = BinarySearchTree::new();
+        bst.insert(10, "Ten");
+        bst.insert(5, "Five");
+        bst.insert(15, "Fifteen");
+        bst.insert(3, "Three");
+        bst.insert(7, "Seven");
+
+        let expected = vec![
+            (&3, &"Three"),
+            (&5, &"Five"),
+            (&7, &"Seven"),
+            (&10, &"Ten"),
+            (&15, &"Fifteen"),
+        ];
+        assert_eq!(bst.inorder_traversal(), expected);
+    }
+
+    #[test]
+    fn test_tree_macro() {
+        let bst = btree! {
+            10 => "Ten",
+            5 => "Five",
+            15 => "Fifteen",
+            3 => "Three",
+            7 => "Seven"
+        };
+
+        assert_eq!(bst.search(10), Some(&"Ten"));
+        assert_eq!(bst.search(5), Some(&"Five"));
+        assert_eq!(bst.search(15), Some(&"Fifteen"));
+        assert_eq!(bst.search(3), Some(&"Three"));
+        assert_eq!(bst.search(7), Some(&"Seven"));
+        assert_eq!(bst.search(20), None);
+
+        let expected = vec![
+            (&3, &"Three"),
+            (&5, &"Five"),
+            (&7, &"Seven"),
+            (&10, &"Ten"),
+            (&15, &"Fifteen"),
+        ];
+        assert_eq!(bst.inorder_traversal(), expected);
+    }
+
+    #[test]
+    fn test_tree_macro_with_duplicates() {
+        let bst = btree! {
+            10 => "Ten",
+            10 => "New Ten"
+        };
+
+        assert_eq!(bst.search(10), Some(&"New Ten"));
+    }
+
+    #[test]
+    fn test_tree_macro_empty() {
+        let bst: BinarySearchTree<i32, &str> = btree! {};
+        assert!(bst.root.is_null());
+        assert_eq!(bst.inorder_traversal(), vec![]);
+    }
 }
