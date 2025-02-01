@@ -1,4 +1,4 @@
-use std::alloc::{Allocator, Global, Layout};
+use std::alloc::{AllocError, Allocator, Global, Layout};
 use std::ptr::{self, null_mut};
 
 // Define a node in the BST
@@ -46,20 +46,21 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
     }
 
     // Allocate a new node using the custom allocator
-    fn allocate_node(&self, key: K, value: V) -> *mut Node<K, V> {
-        let layout: Layout = Layout::new::<Node<K, V>>();
+    fn allocate_node(&self, key: K, value: V) -> Result<*mut Node<K, V>, AllocError> {
+        let layout = Layout::new::<Node<K, V>>();
 
         unsafe {
-            let ptr: *mut Node<K, V> = self
+            // Attempt to allocate memory
+            let ptr = self
                 .allocator
-                .allocate(layout)
-                .unwrap()
+                .allocate(layout)?
                 .cast::<Node<K, V>>()
                 .as_ptr();
 
+            // Initialize the node
             ptr::write(ptr, Node::new(key, value));
 
-            ptr
+            Ok(ptr)
         }
     }
 
@@ -78,19 +79,18 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
     }
 
     // Insert a key-value pair into the BST (iterative)
-    pub fn insert(&mut self, key: K, value: V) {
+    pub fn insert(&mut self, key: K, value: V) -> Result<(), AllocError> {
         unsafe {
             if self.root.is_null() {
                 // If the tree is empty, allocate a new node and set it as the root
-                self.root = self.allocate_node(key, value);
+                self.root = self.allocate_node(key, value)?;
             } else {
-                let mut current: *mut Node<K, V> = self.root;
-
+                let mut current = self.root;
                 loop {
                     if key < (*current).key {
                         if (*current).left.is_null() {
                             // Allocate a new node and set it as the left child
-                            (*current).left = self.allocate_node(key, value);
+                            (*current).left = self.allocate_node(key, value)?;
                             break;
                         } else {
                             current = (*current).left;
@@ -98,7 +98,7 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
                     } else if key > (*current).key {
                         if (*current).right.is_null() {
                             // Allocate a new node and set it as the right child
-                            (*current).right = self.allocate_node(key, value);
+                            (*current).right = self.allocate_node(key, value)?;
                             break;
                         } else {
                             current = (*current).right;
@@ -110,6 +110,7 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
                     }
                 }
             }
+            Ok(())
         }
     }
 
@@ -188,7 +189,7 @@ macro_rules! btree {
     ($($key:expr => $value:expr),* $(,)?) => {{
         #[allow(unused)]
         let mut bst = BinarySearchTree::new();
-        $(bst.insert($key, $value);)*
+        $(bst.insert($key, $value).ok();)*
         bst
     }};
 }
@@ -208,9 +209,9 @@ mod tests {
     #[test]
     fn test_insert_and_search() {
         let mut bst: BinarySearchTree<i32, &str> = BinarySearchTree::new();
-        bst.insert(10, "Ten");
-        bst.insert(5, "Five");
-        bst.insert(15, "Fifteen");
+        bst.insert(10, "Ten").ok();
+        bst.insert(5, "Five").ok();
+        bst.insert(15, "Fifteen").ok();
 
         assert_eq!(bst.search(10), Some(&"Ten"));
         assert_eq!(bst.search(5), Some(&"Five"));
@@ -221,8 +222,8 @@ mod tests {
     #[test]
     fn test_duplicate_keys() {
         let mut bst: BinarySearchTree<i32, &str> = BinarySearchTree::new();
-        bst.insert(10, "Ten");
-        bst.insert(10, "New Ten");
+        bst.insert(10, "Ten").ok();
+        bst.insert(10, "New Ten").ok();
 
         assert_eq!(bst.search(10), Some(&"New Ten"));
     }
@@ -230,11 +231,11 @@ mod tests {
     #[test]
     fn test_inorder_traversal() {
         let mut bst: BinarySearchTree<i32, &str> = BinarySearchTree::new();
-        bst.insert(10, "Ten");
-        bst.insert(5, "Five");
-        bst.insert(15, "Fifteen");
-        bst.insert(3, "Three");
-        bst.insert(7, "Seven");
+        bst.insert(10, "Ten").ok();
+        bst.insert(5, "Five").ok();
+        bst.insert(15, "Fifteen").ok();
+        bst.insert(3, "Three").ok();
+        bst.insert(7, "Seven").ok();
 
         let expected: Vec<(&i32, &&str)> = vec![
             (&3, &"Three"),
