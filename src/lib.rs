@@ -15,8 +15,6 @@ pub mod code;
 
 pub mod algorithms;
 
-pub mod linked_lists;
-
 pub mod testing;
 
 pub mod euler;
