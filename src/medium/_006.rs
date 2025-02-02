@@ -38,6 +38,49 @@ impl Solution {
     }
 }
 
+pub struct SolutionOpt;
+
+impl SolutionOpt {
+    pub fn convert(s: String, num_rows: i32) -> String {
+        if num_rows == 1 {
+            return s;
+        }
+
+        let n: usize = s.len();
+        let sbytes: &[u8] = s.as_bytes();
+        let num_rows: usize = num_rows as usize;
+        let max_jump: usize = 2 * (num_rows - 1);
+        let mut res: Vec<u8> = Vec::with_capacity(n);
+
+        for mut i in 0..num_rows {
+            let mut jump_even = max_jump - 2 * i;
+            let mut jump_odd = 2 * i;
+
+            if jump_even == 0 {
+                jump_even = max_jump;
+            }
+
+            if jump_odd == 0 {
+                jump_odd = max_jump;
+            }
+
+            let mut is_even: bool = true;
+
+            loop {
+                if i >= n {
+                    break;
+                }
+
+                res.push(sbytes[i]);
+                i += if is_even { jump_even } else { jump_odd };
+                is_even = !is_even;
+            }
+        }
+
+        unsafe { String::from_utf8_unchecked(res) }
+    }
+}
+
 pub struct SolutionAlt;
 
 impl SolutionAlt {
@@ -84,20 +127,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_006_1() {
+    fn test_6_1() {
         let test_str: String = "PAYPALISHIRING".into();
         let test_num_rows: i32 = 3;
         let expected: String = "PAHNAPLSIIGYIR".into();
 
-        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+        assert_eq!(SolutionOpt::convert(test_str, test_num_rows), expected);
     }
 
     #[test]
-    fn test_006_2() {
+    fn test_6_2() {
         let test_str: String = "PAYPALISHIRING".into();
         let test_num_rows: i32 = 4;
         let expected: String = "PINALSIGYAHRPI".into();
 
-        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+        assert_eq!(SolutionOpt::convert(test_str, test_num_rows), expected);
     }
 }
