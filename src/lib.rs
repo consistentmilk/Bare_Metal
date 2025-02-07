@@ -4,7 +4,6 @@
 #![feature(min_specialization)]
 pub mod contests;
 pub mod easy;
-pub mod exercism;
 pub mod hard;
 pub mod medium;
 
@@ -16,7 +15,5 @@ pub mod code;
 pub mod algorithms;
 
 pub mod testing;
-
-pub mod euler;
 
 pub mod data_structures;
