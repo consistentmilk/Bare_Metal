@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.86"
 clap = { version = "4.5.23", features = ["cargo", "derive"] }
+criterion = "0.5.1"
 divan = "0.1.17"
 nalgebra = "0.32.5"
 num-bigint = { version = "0.4.6", features = ["rand"] }
