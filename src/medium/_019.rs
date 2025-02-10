@@ -34,6 +34,32 @@ impl Solution {
         dummy.next
     }
 
+    pub fn remove_nth_from_end_unsafe_miri_tested(
+        head: Option<Box<ListNode>>,
+        n: i32,
+    ) -> Option<Box<ListNode>> {
+        let mut dummy: Box<ListNode> = Box::new(ListNode { val: 0, next: head });
+        let mut fast: *const ListNode = &(*dummy) as *const ListNode;
+
+        for _ in 0..n {
+            unsafe {
+                fast = (*fast).next.as_deref()?;
+            }
+        }
+
+        let mut slow: *mut ListNode = &mut (*dummy) as *mut ListNode;
+        unsafe {
+            while (*fast).next.is_some() {
+                fast = (*fast).next.as_deref()?;
+                slow = (*slow).next.as_deref_mut()?;
+            }
+
+            (*slow).next = (*slow).next.as_mut()?.next.take();
+        }
+
+        dummy.next
+    }
+
     pub fn remove_nth_from_end_naive(
         mut head: Option<Box<ListNode>>,
         n: i32,
