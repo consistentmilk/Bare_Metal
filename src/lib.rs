@@ -10,8 +10,6 @@ pub mod medium;
 #[macro_use]
 pub mod utils;
 
-pub mod code;
-
 pub mod algorithms;
 
 pub mod testing;
