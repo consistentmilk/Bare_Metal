@@ -78,12 +78,13 @@ impl<K: Ord, V, A: Allocator> BinarySearchTree<K, V, A> {
     unsafe fn deallocate_node(&self, node: *mut Node<K, V>) {
         if !node.is_null() {
             let layout: Layout = Layout::new::<Node<K, V>>();
+            unsafe {
+                ptr::drop_in_place(node); // Drop the node's contents
 
-            ptr::drop_in_place(node); // Drop the node's contents
-
-            // Convert the raw pointer to NonNull<u8> for deallocation
-            if let Some(non_null) = ptr::NonNull::new(node.cast::<u8>()) {
-                self.allocator.deallocate(non_null, layout);
+                // Convert the raw pointer to NonNull<u8> for deallocation
+                if let Some(non_null) = ptr::NonNull::new(node.cast::<u8>()) {
+                    self.allocator.deallocate(non_null, layout);
+                }
             }
         }
     }
