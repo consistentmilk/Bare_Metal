@@ -1,7 +1,34 @@
 pub struct Solution;
 
 impl Solution {
-    pub fn pivot_array(mut nums: Vec<i32>, pivot: i32) -> Vec<i32> {
+    pub fn pivot_array(nums: Vec<i32>, pivot: i32) -> Vec<i32> {
+        let n: usize = nums.len();
+
+        let mut res: Vec<i32> = vec![0; n];
+        let mut lesser_idx: usize = 0;
+        let mut greater_idx: usize = n - 1;
+
+        for (i, j) in (0..n).zip((0..n).rev()) {
+            if nums[i] < pivot {
+                res[lesser_idx] = nums[i];
+                lesser_idx += 1;
+            }
+
+            if nums[j] > pivot {
+                res[greater_idx] = nums[j];
+                greater_idx -= 1;
+            }
+        }
+
+        while lesser_idx <= greater_idx {
+            res[lesser_idx] = pivot;
+            lesser_idx += 1;
+        }
+
+        res
+    }
+
+    pub fn pivot_array_std(mut nums: Vec<i32>, pivot: i32) -> Vec<i32> {
         nums.sort_by_key(|&num| {
             if num < pivot {
                 0
