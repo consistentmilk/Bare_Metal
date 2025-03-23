@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 pub struct Solution;
 
 impl Solution {
@@ -24,6 +26,40 @@ impl Solution {
             res[lesser_idx] = pivot;
             lesser_idx += 1;
         }
+
+        res
+    }
+
+    pub fn pivot_array_naive(nums: Vec<i32>, pivot: i32) -> Vec<i32> {
+        let n: usize = nums.len();
+
+        let mut res: Vec<i32> = Vec::with_capacity(n);
+        let mut lesser_pivot_arr: Vec<i32> = Vec::with_capacity(n / 2);
+        let mut greater_pivot_arr: Vec<i32> = Vec::with_capacity(n / 2);
+
+        for val in nums {
+            match val.cmp(&pivot) {
+                Ordering::Less => {
+                    lesser_pivot_arr.push(val);
+                }
+
+                Ordering::Greater => {
+                    greater_pivot_arr.push(val);
+                }
+
+                Ordering::Equal => continue,
+            }
+        }
+
+        let equal_count = n - (lesser_pivot_arr.len() + greater_pivot_arr.len());
+
+        res.extend_from_slice(&lesser_pivot_arr);
+
+        for _ in 0..equal_count {
+            res.push(pivot);
+        }
+
+        res.extend_from_slice(&greater_pivot_arr);
 
         res
     }
