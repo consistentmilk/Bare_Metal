@@ -55,6 +55,7 @@ pub mod _189;
 pub mod _1910;
 pub mod _2161;
 pub mod _2349;
+pub mod _2523;
 pub mod _3066;
 pub mod _3160;
 pub mod _3163;
