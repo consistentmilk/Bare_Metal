@@ -3,33 +3,43 @@ pub struct Solution;
 impl Solution {
     pub fn maximum_triplet_value(nums: Vec<i32>) -> i64 {
         let n: usize = nums.len();
-        let mut res: i64 = 0;
+        let mut max_val: i64 = 0;
 
         for i in 0..n {
-            for j in i + 1..n {
-                for k in j + 1..n {
-                    res = res.max((nums[i] - nums[j]) as i64 * nums[k] as i64);
+            for j in (i + 1)..n {
+                for k in (j + 1)..n {
+                    let a: i64 = nums[i] as i64;
+                    let b: i64 = nums[j] as i64;
+                    let c: i64 = nums[k] as i64;
+
+                    let curr_val: i64 = (a - b) * c;
+                    max_val = std::cmp::max(max_val, curr_val);
                 }
             }
         }
 
-        res
+        max_val
     }
 
     pub fn maximum_triplet_value_greedy(nums: Vec<i32>) -> i64 {
         let n: usize = nums.len();
-        let mut res: i64 = 0;
+        let mut max_val: i64 = 0;
 
         for k in 2..n {
-            let mut max_prefix: i32 = nums[0];
+            let mut a: i64 = nums[0] as i64;
 
             for j in 1..k {
-                res = res.max((max_prefix - nums[j]) as i64 * nums[k] as i64);
-                max_prefix = max_prefix.max(nums[j]);
+                let b: i64 = nums[j] as i64;
+                let c: i64 = nums[k] as i64;
+
+                let curr_val = (a - b) * c;
+                max_val = std::cmp::max(max_val, curr_val);
+
+                a = std::cmp::max(a, b);
             }
         }
 
-        res
+        max_val
     }
 
     pub fn maximum_triplet_value_greedy_prefix_array(nums: Vec<i32>) -> i64 {
@@ -52,17 +62,17 @@ impl Solution {
     }
 
     pub fn maximum_triplet_value_optimized(nums: Vec<i32>) -> i64 {
-        let mut res: i64 = 0;
-        let mut imax: i64 = 0;
+        let mut max_val: i64 = 0;
         let mut dmax: i64 = 0;
+        let mut imax: i64 = 0;
 
-        for &num in nums.iter() {
-            res = res.max(dmax * num as i64);
-            dmax = dmax.max(imax - num as i64);
-            imax = imax.max(num as i64);
+        for &icurr in nums.iter() {
+            max_val = std::cmp::max(max_val, dmax * icurr as i64);
+            dmax = std::cmp::max(dmax, imax - icurr as i64);
+            imax = std::cmp::max(imax, icurr as i64);
         }
 
-        res
+        max_val
     }
 }
 
