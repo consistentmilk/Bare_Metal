@@ -160,3 +160,168 @@ impl Solution {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_004_1() {
+        let nums1 = vec![1, 3];
+        let nums2 = vec![2];
+        let expected = 2.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_2() {
+        let nums1 = vec![1, 2];
+        let nums2 = vec![3, 4];
+        let expected = 2.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_3() {
+        let nums1 = vec![];
+        let nums2 = vec![1];
+        let expected = 1.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_4() {
+        let nums1 = vec![];
+        let nums2 = vec![2, 3];
+        let expected = 2.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_5() {
+        let nums1 = vec![1];
+        let nums2 = vec![];
+        let expected = 1.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_6() {
+        let nums1 = vec![1, 1, 1];
+        let nums2 = vec![1, 1, 1];
+        let expected = 1.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_7() {
+        let nums1 = vec![1, 2, 3, 4, 5];
+        let nums2 = vec![6, 7, 8, 9, 10];
+        let expected = 5.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_8() {
+        let nums1 = vec![1, 3, 5, 7, 9];
+        let nums2 = vec![2, 4, 6, 8, 10];
+        let expected = 5.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_9() {
+        let nums1 = vec![1, 3, 8];
+        let nums2 = vec![7, 9, 10, 11];
+        let expected = 8.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_10() {
+        let nums1 = vec![1, 2, 3];
+        let nums2 = vec![4, 5, 6, 7, 8, 9];
+        let expected = 5.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_11() {
+        let nums1 = vec![10];
+        let nums2 = vec![1, 2, 3, 4, 5];
+        let expected = 3.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_12() {
+        let nums1 = vec![1, 5, 9];
+        let nums2 = vec![2, 3, 4, 6, 7, 8];
+        let expected = 5.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_13() {
+        let nums1 = vec![1, 2, 3, 4];
+        let nums2 = vec![5, 6, 7, 8];
+        let expected = 4.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_14() {
+        let nums1 = vec![1, 3, 5, 7];
+        let nums2 = vec![2, 4, 6, 8];
+        let expected = 4.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_15() {
+        let nums1 = vec![1, 2, 3, 4, 5, 6];
+        let nums2 = vec![];
+        let expected = 3.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_16() {
+        let nums1 = vec![1, 2, 3, 4, 5];
+        let nums2 = vec![];
+        let expected = 3.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_17() {
+        let nums1 = vec![1, 3];
+        let nums2 = vec![2, 4, 5, 6];
+        let expected = 3.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_18() {
+        let nums1 = vec![1, 2, 3];
+        let nums2 = vec![1, 2, 3];
+        let expected = 2.0;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_19() {
+        let nums1 = vec![1, 2, 3, 4, 5, 6, 7, 8];
+        let nums2 = vec![1, 2, 3, 4, 5, 6, 7, 8];
+        let expected = 4.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+
+    #[test]
+    fn test_004_20() {
+        let nums1 = vec![1, 3, 5, 7, 9, 11];
+        let nums2 = vec![2, 4, 6, 8, 10, 12];
+        let expected = 6.5;
+        assert_eq!(Solution::find_median_sorted_arrays(nums1, nums2), expected);
+    }
+}
