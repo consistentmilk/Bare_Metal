@@ -74,7 +74,7 @@ mod tests {
         }
 
         let root: Rc<RefCell<TreeNode>> = Rc::new(RefCell::new(TreeNode::new(values[0].unwrap())));
-        let mut queue: VecDeque<Rc<RefCell<TreeNode>>> = std::collections::VecDeque::new();
+        let mut queue: VecDeque<Rc<RefCell<TreeNode>>> = VecDeque::new();
         queue.push_back(Rc::clone(&root));
         let mut index: usize = 1;
 
@@ -88,6 +88,7 @@ mod tests {
                     node.left = Some(Rc::clone(&left));
                     queue.push_back(left);
                 }
+
                 index += 1;
             }
 
@@ -97,6 +98,7 @@ mod tests {
                     node.right = Some(Rc::clone(&right));
                     queue.push_back(right);
                 }
+
                 index += 1;
             }
         }
