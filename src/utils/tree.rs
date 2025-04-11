@@ -69,6 +69,79 @@ impl TreeNode {
 
         root
     }
+
+    pub fn print_tree_ascii(root: &Option<Rc<RefCell<TreeNode>>>) {
+        fn get_height(node: &Option<Rc<RefCell<TreeNode>>>) -> usize {
+            match node {
+                None => 0,
+                Some(n) => {
+                    let n = n.borrow();
+                    1 + std::cmp::max(get_height(&n.left), get_height(&n.right))
+                }
+            }
+        }
+
+        fn fill_lines(
+            node: &Option<Rc<RefCell<TreeNode>>>,
+            level: usize,
+            lines: &mut Vec<String>,
+            pos: usize,
+            spacing: usize,
+        ) {
+            if let Some(n) = node {
+                let n = n.borrow();
+                let val_str = n.val.to_string();
+                let start = pos - val_str.len() / 2;
+
+                // Fill node value
+                let line = &mut lines[level * 2];
+                for (i, c) in val_str.chars().enumerate() {
+                    if start + i < line.len() {
+                        line.replace_range(start + i..start + i + 1, &c.to_string());
+                    }
+                }
+
+                // Fill branches if not last level
+                if level * 2 + 1 < lines.len() {
+                    let branch_line = &mut lines[level * 2 + 1];
+                    if n.left.is_some() {
+                        let left_pos = pos - spacing / 2;
+                        if left_pos > 0 {
+                            branch_line.replace_range(left_pos..left_pos + 1, "/");
+                        }
+                    }
+                    if n.right.is_some() {
+                        let right_pos = pos + spacing / 2;
+                        if right_pos < branch_line.len() {
+                            branch_line.replace_range(right_pos..right_pos + 1, "\\");
+                        }
+                    }
+                }
+
+                // Recurse for children with reduced spacing
+                let new_spacing = spacing / 2;
+                fill_lines(&n.left, level + 1, lines, pos - spacing / 2, new_spacing);
+                fill_lines(&n.right, level + 1, lines, pos + spacing / 2, new_spacing);
+            }
+        }
+
+        let height = get_height(root);
+        if height == 0 {
+            return;
+        }
+
+        // Calculate initial spacing (last level has 3 spaces between nodes)
+        let spacing = (1 << (height - 1)) * 3 - 1;
+        let width = (1 << height) * 3 - 1;
+        let mut lines = vec![vec![' '; width].into_iter().collect::<String>(); height * 2 - 1];
+
+        fill_lines(root, 0, &mut lines, width / 2, spacing / 2);
+
+        // Print the lines
+        for line in lines {
+            println!("{}", line.trim_end());
+        }
+    }
 }
 
 pub trait TreeMaker {
