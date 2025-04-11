@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub struct Solution;
@@ -41,24 +42,85 @@ impl Solution {
     pub fn lca_deepest_leaves(
         root: Option<Rc<RefCell<TreeNode>>>,
     ) -> Option<Rc<RefCell<TreeNode>>> {
-        fn dfs(node: &Option<Rc<RefCell<TreeNode>>>) -> (Option<Rc<RefCell<TreeNode>>>, i32) {
-            match node {
-                None => (None, 0),
+        Self::dfs(&root).0
+    }
 
-                Some(n) => {
-                    let (left_lca, left_depth) = dfs(&n.borrow().left);
-                    let (right_lca, right_depth) = dfs(&n.borrow().right);
+    fn dfs(root: &Option<Rc<RefCell<TreeNode>>>) -> (Option<Rc<RefCell<TreeNode>>>, i32) {
+        match root {
+            None => (None, 0),
 
-                    match left_depth.cmp(&right_depth) {
-                        Ordering::Greater => (left_lca, left_depth + 1),
-                        Ordering::Less => (right_lca, right_depth + 1),
-                        Ordering::Equal => (Some(Rc::clone(n)), left_depth + 1),
-                    }
+            Some(node) => {
+                let (left_lca, left_depth) = Self::dfs(&node.borrow().left);
+                let (right_lca, right_depth) = Self::dfs(&node.borrow().right);
+
+                match left_depth.cmp(&right_depth) {
+                    Ordering::Greater => return (left_lca, left_depth + 1),
+
+                    Ordering::Less => return (right_lca, right_depth + 1),
+
+                    Ordering::Equal => return (Some(Rc::clone(&node)), left_depth + 1),
                 }
             }
         }
+    }
 
-        dfs(&root).0
+    pub fn lca_deepest_leaves_iterative(
+        root: Option<Rc<RefCell<TreeNode>>>,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        if root.is_none() {
+            return None;
+        }
+
+        let mut stack = Vec::new();
+        let mut lca_map = HashMap::new(); // Stores (LCA, depth) for each node
+        let mut max_depth = 0;
+        let root_node = root.unwrap();
+
+        // Post-order traversal stack: (node, visited)
+        stack.push((Rc::clone(&root_node), false));
+
+        while let Some((node, visited)) = stack.pop() {
+            if !visited {
+                // Push back with visited = true
+                stack.push((Rc::clone(&node), true));
+
+                // Push right child first (post-order)
+                if let Some(right) = node.borrow().right.as_ref() {
+                    stack.push((Rc::clone(right), false));
+                }
+
+                // Push left child
+                if let Some(left) = node.borrow().left.as_ref() {
+                    stack.push((Rc::clone(left), false));
+                }
+            } else {
+                // Process the node
+                let left_child = node.borrow().left.as_ref().map(Rc::clone);
+                let right_child = node.borrow().right.as_ref().map(Rc::clone);
+
+                let (left_lca, left_depth) = left_child
+                    .as_ref()
+                    .and_then(|lc| lca_map.get(&lc.as_ptr()))
+                    .unwrap_or(&(None, 0));
+
+                let (right_lca, right_depth) = right_child
+                    .as_ref()
+                    .and_then(|rc| lca_map.get(&rc.as_ptr()))
+                    .unwrap_or(&(None, 0));
+
+                let (current_lca, current_depth) = match left_depth.cmp(&right_depth) {
+                    Ordering::Greater => (left_lca.clone(), left_depth + 1),
+                    Ordering::Less => (right_lca.clone(), right_depth + 1),
+                    Ordering::Equal => (Some(Rc::clone(&node)), left_depth + 1),
+                };
+
+                lca_map.insert(node.as_ptr(), (current_lca, current_depth));
+                max_depth = max_depth.max(current_depth);
+            }
+        }
+
+        // Retrieve the LCA of the root node
+        lca_map.get(&root_node.as_ptr()).unwrap().0.clone()
     }
 }
 
