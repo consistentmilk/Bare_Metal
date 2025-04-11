@@ -16,8 +16,8 @@ impl Solution {
     /// to one node after the current 'next' node to remove the required node.
     ///
     pub fn remove_nth_from_end(head: Option<Box<ListNode>>, n: i32) -> Option<Box<ListNode>> {
-        let mut dummy: Box<ListNode> = Box::new(ListNode { val: 0, next: head });
-        let mut slow_ptr: &mut Box<ListNode> = &mut dummy;
+        let mut head_ptr: Box<ListNode> = Box::new(ListNode { val: 0, next: head });
+        let mut slow_ptr: &mut Box<ListNode> = &mut head_ptr;
         let mut fast_ptr: &Box<ListNode> = &slow_ptr.clone();
 
         for _ in 0..n {
@@ -25,13 +25,13 @@ impl Solution {
         }
 
         while fast_ptr.next.is_some() {
-            fast_ptr = fast_ptr.next.as_ref()?;
             slow_ptr = slow_ptr.next.as_mut()?;
+            fast_ptr = fast_ptr.next.as_ref()?;
         }
 
         slow_ptr.next = slow_ptr.next.as_mut()?.next.take();
 
-        dummy.next
+        head_ptr.next
     }
 
     pub fn remove_nth_from_end_unsafe_miri_tested(
@@ -72,26 +72,29 @@ impl Solution {
             v.push(Some(node));
         }
 
-        let mut res: Option<Box<ListNode>> = None;
+        let mut expected: Option<Box<ListNode>> = None;
 
         for (i, link) in v.into_iter().rev().enumerate() {
             if i != (n - 1) as usize {
                 let mut node: Box<ListNode> = link.unwrap();
 
-                node.next = res;
+                node.next = expected;
 
-                res = Some(node);
+                expected = Some(node);
             }
         }
 
-        res
+        expected
     }
+
     pub fn remove_nth_from_end_alt(head: Option<Box<ListNode>>, n: i32) -> Option<Box<ListNode>> {
         fn recurse(head: Option<Box<ListNode>>, n: i32) -> (Option<Box<ListNode>>, usize) {
             match head {
                 None => (None, 1),
+
                 Some(mut node) => {
                     let (prev, num) = recurse(node.next.take(), n);
+
                     if n == num as i32 {
                         (prev, num + 1)
                     } else {
@@ -112,30 +115,122 @@ mod tests {
 
     use crate::list;
 
+    fn test_all_impls(head: Option<Box<ListNode>>, n: i32, expected: Option<Box<ListNode>>) {
+        assert_eq!(
+            Solution::remove_nth_from_end(head.clone(), n.clone()),
+            expected.clone()
+        );
+
+        assert_eq!(
+            Solution::remove_nth_from_end_unsafe_miri_tested(head.clone(), n.clone()),
+            expected.clone()
+        );
+
+        assert_eq!(
+            Solution::remove_nth_from_end_naive(head.clone(), n.clone()),
+            expected.clone()
+        );
+
+        assert_eq!(
+            Solution::remove_nth_from_end_alt(head.clone(), n.clone()),
+            expected.clone()
+        );
+    }
+
     #[test]
-    fn test_19_1() {
+    fn test_019_1() {
         let head: Option<Box<ListNode>> = list!(1, 2, 3, 4, 5);
         let n: i32 = 1;
-        let res: Option<Box<ListNode>> = list!(1, 2, 3, 4);
+        let expected: Option<Box<ListNode>> = list!(1, 2, 3, 4);
 
-        assert_eq!(Solution::remove_nth_from_end(head, n), res);
+        test_all_impls(head, n, expected);
     }
 
     #[test]
-    fn test_19_2() {
+    fn test_019_2() {
         let head: Option<Box<ListNode>> = list!(1);
         let n: i32 = 1;
-        let res: Option<Box<ListNode>> = None;
+        let expected: Option<Box<ListNode>> = None;
 
-        assert_eq!(Solution::remove_nth_from_end(head, n), res);
+        test_all_impls(head, n, expected);
     }
 
     #[test]
-    fn test_19_3() {
+    fn test_019_3() {
         let head: Option<Box<ListNode>> = list!(1, 2);
         let n: i32 = 1;
-        let res: Option<Box<ListNode>> = list!(1);
+        let expected: Option<Box<ListNode>> = list!(1);
 
-        assert_eq!(Solution::remove_nth_from_end(head, n), res);
+        test_all_impls(head, n, expected);
+    }
+
+    #[test]
+    fn test_019_4() {
+        // Remove first node (n = length)
+        let head = list!(1, 2, 3, 4, 5);
+        let n = 5;
+        let expected = list!(2, 3, 4, 5);
+
+        test_all_impls(head, n, expected);
+    }
+
+    #[test]
+    fn test_019_5() {
+        // Remove middle node
+        let head = list!(1, 2, 3, 4, 5);
+        let n = 3;
+        let expected = list!(1, 2, 4, 5);
+
+        test_all_impls(head, n, expected);
+    }
+
+    #[test]
+    fn test_019_6() {
+        // Single node, remove first (n=1)
+        let head = list!(1);
+        let n = 1;
+        let expected: Option<Box<ListNode>> = None;
+
+        test_all_impls(head, n, expected);
+    }
+
+    #[test]
+    fn test_019_7() {
+        // Two nodes, remove first (n=2)
+        let head = list!(1, 2);
+        let n = 2;
+        let expected = list!(2);
+
+        test_all_impls(head, n, expected);
+    }
+
+    #[test]
+    fn test_019_8() {
+        // Long list, remove 2nd from end
+        let head = list!(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        let n = 2;
+        let expected = list!(1, 2, 3, 4, 5, 6, 7, 8, 10);
+
+        test_all_impls(head, n, expected);
+    }
+
+    #[test]
+    fn test_019_9() {
+        // All nodes same value
+        let head = list!(5, 5, 5, 5, 5);
+        let n = 2;
+        let expected = list!(5, 5, 5, 5);
+
+        test_all_impls(head, n, expected);
+    }
+
+    #[test]
+    fn test_019_10() {
+        // Remove last node in long list
+        let head = list!(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        let n = 1;
+        let expected = list!(1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+        test_all_impls(head, n, expected);
     }
 }
