@@ -41,13 +41,13 @@ impl Solution {
         Self::validate(root, None, None)
     }
 
-    fn validate(node: Option<Rc<RefCell<TreeNode>>>, min: Option<i32>, max: Option<i32>) -> bool {
-        match node {
+    fn validate(root: Option<Rc<RefCell<TreeNode>>>, min: Option<i32>, max: Option<i32>) -> bool {
+        match root {
             None => true,
 
-            Some(n) => {
-                let n: Ref<'_, TreeNode> = n.borrow();
-                let val: i32 = n.val;
+            Some(node) => {
+                let node: Ref<'_, TreeNode> = node.borrow();
+                let val: i32 = node.val;
 
                 // Check current node's value is within bounds
                 if min.is_some() && val <= min.unwrap() {
@@ -58,8 +58,8 @@ impl Solution {
                 }
 
                 // Recursively check left and right subtrees
-                Self::validate(n.left.clone(), min, Some(val))
-                    && Self::validate(n.right.clone(), Some(val), max)
+                Self::validate(node.left.clone(), min, Some(val))
+                    && Self::validate(node.right.clone(), Some(val), max)
             }
         }
     }
