@@ -9,27 +9,26 @@ impl Solution {
     // Iterative solution using inorder traversal
     pub fn is_valid_bst(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
         let mut stack: Vec<Rc<RefCell<TreeNode>>> = Vec::new();
-        let mut prev: Option<i32> = None;
+        let mut left_node_val: Option<i32> = None;
         let mut current: Option<Rc<RefCell<TreeNode>>> = root;
 
         while current.is_some() || !stack.is_empty() {
-            // Go to the leftmost node
             while let Some(node) = current {
                 stack.push(Rc::clone(&node));
+
                 current = node.borrow().left.clone();
             }
 
-            // Visit node
             if let Some(node) = stack.pop() {
-                let val = node.borrow().val;
+                let right_val: i32 = node.borrow().val;
 
-                if let Some(p) = prev {
-                    if val <= p {
+                if let Some(left_val) = left_node_val {
+                    if left_val >= right_val {
                         return false;
                     }
                 }
 
-                prev = Some(val);
+                left_node_val = Some(right_val);
                 current = node.borrow().right.clone();
             }
         }
