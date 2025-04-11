@@ -7,46 +7,65 @@ pub struct Solution;
 impl Solution {
     // LEFT - ROOT - RIGHT
     pub fn inorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
-        let mut res: Vec<i32> = Vec::new();
+        let mut res_vec: Vec<i32> = Vec::new();
 
-        fn traverse(root: Option<Rc<RefCell<TreeNode>>>, res: &mut Vec<i32>) {
-            if let Some(node) = root {
-                traverse(node.borrow().left.clone(), res);
+        Self::traverse(root, &mut res_vec);
 
-                res.push(node.borrow().val);
-
-                traverse(node.borrow().right.clone(), res);
-            }
-        }
-
-        traverse(root, &mut res);
-
-        res
+        res_vec
     }
 
-    pub fn inorder_traversal_iterative(mut root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
-        let mut res: Vec<i32> = Vec::new();
-        let mut stack: Vec<Rc<RefCell<TreeNode>>> = Vec::new();
+    fn traverse(root: Option<Rc<RefCell<TreeNode>>>, res_vec: &mut Vec<i32>) {
+        if let Some(node) = root {
+            Self::traverse(node.borrow().left.clone(), res_vec);
 
-        while root.is_some() || !stack.is_empty() {
-            while let Some(node) = root {
+            res_vec.push(node.borrow().val);
+
+            Self::traverse(node.borrow().right.clone(), res_vec);
+        }
+    }
+
+    pub fn inorder_traversal_iterative(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+        let mut res_vec: Vec<i32> = Vec::new();
+        let mut stack: Vec<Rc<RefCell<TreeNode>>> = Vec::new();
+        let mut curr = root;
+
+        while curr.is_some() || !stack.is_empty() {
+            while let Some(node) = curr {
                 stack.push(node.clone());
-                root = node.borrow().left.clone();
+
+                curr = node.borrow().left.clone();
             }
 
             if let Some(node) = stack.pop() {
-                res.push(node.borrow().val);
-                root = node.borrow().right.clone();
+                res_vec.push(node.borrow().val);
+
+                curr = node.borrow().right.clone();
             }
         }
 
-        res
+        res_vec
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn test_both_implementations(root: Option<Rc<RefCell<TreeNode>>>, expected: Vec<i32>) {
+        // Test recursive implementation
+        assert_eq!(
+            Solution::inorder_traversal(root.clone()),
+            expected,
+            "Recursive implementation failed"
+        );
+
+        // Test iterative implementation
+        assert_eq!(
+            Solution::inorder_traversal_iterative(root),
+            expected,
+            "Iterative implementation failed"
+        );
+    }
 
     #[test]
     fn test_094_1() {
@@ -55,7 +74,7 @@ mod tests {
 
         let expected: Vec<i32> = vec![1, 3, 2];
 
-        assert_eq!(Solution::inorder_traversal_iterative(root), expected);
+        test_both_implementations(root, expected);
     }
 
     #[test]
@@ -65,7 +84,7 @@ mod tests {
 
         let expected: Vec<i32> = vec![4, 2, 5, 1, 3];
 
-        assert_eq!(Solution::inorder_traversal_iterative(root), expected);
+        test_both_implementations(root, expected);
     }
 
     #[test]
@@ -82,6 +101,6 @@ mod tests {
 
         let expected: Vec<i32> = vec![9, 3, 15, 20, 7];
 
-        assert_eq!(Solution::inorder_traversal_iterative(root), expected);
+        test_both_implementations(root, expected);
     }
 }
