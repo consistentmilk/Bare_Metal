@@ -41,6 +41,24 @@ impl Solution {
 pub struct SolutionOpt;
 
 impl SolutionOpt {
+    ///
+    /// 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+    /// P  A  Y  P  A  L  I  S  H  I  R  I  N  I  N  G
+    ///
+    /// n = 4, Rows produced by alternating
+    ///
+    /// 0  6 12
+    /// P  I  N -> i = 0, jump_even = 6, jump_odd = 6
+    ///
+    /// 1  5  7 11 13
+    /// A  L  S  I  G -> i = 1, jump_even = 4, jump_odd = 2
+    ///
+    /// 2  4  8 10
+    /// Y  A  H  R -> i = 2, jump_even = 2, jump_odd = 4
+    ///
+    /// 3  9
+    /// P  I -> i = 3, jump_even = 6, jump_odd = 6
+    ///
     pub fn convert(s: String, num_rows: i32) -> String {
         if num_rows == 1 {
             return s;
@@ -127,7 +145,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_6_1() {
+    fn test_006_1() {
         let test_str: String = "PAYPALISHIRING".into();
         let test_num_rows: i32 = 3;
         let expected: String = "PAHNAPLSIIGYIR".into();
@@ -136,7 +154,7 @@ mod tests {
     }
 
     #[test]
-    fn test_6_2() {
+    fn test_006_2() {
         let test_str: String = "PAYPALISHIRING".into();
         let test_num_rows: i32 = 4;
         let expected: String = "PINALSIGYAHRPI".into();
