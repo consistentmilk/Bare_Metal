@@ -1,82 +1,112 @@
-//! Intuition:
-//! 1. The ZigZag pattern writes characters in a down‑then‑up diagonal across `num_rows` rows.
-//! 2. Reading row‑by‑row is equivalent to jumping through the string by alternating step sizes.
-//! 3. For each row `i`, the two jumps are:
-//!    - `jump_even = 2*(num_rows−1) − 2*i` (vertical‑down to diagonal‑up transition), and
-//!    - `jump_odd  = 2*i`            (diagonal‑up back to vertical‑down transition).
-//! 4. If either jump is zero (for the first or last row), we substitute the full cycle `2*(num_rows−1)`.
+//! # Zigzag Conversion (LeetCode 6)
 //!
-//! Algorithm:
-//! 1. If `num_rows == 1`, return `s` unchanged (no ZigZag).  
-//! 2. Convert `s` to bytes for O(1) indexing and compute:
+//! ## Intuition
+//! 1. Characters are placed in a down‑then‑up diagonal across `num_rows` rows.
+//! 2. Reading row by row corresponds to jumping through the string with alternating steps.
+//! 3. For row `r`, the jumps are:
+//!    - `jump_even = cycle - 2 * r`
+//!    - `jump_odd  = 2 * r`
+//! 4. If a jump is zero, replace it with `cycle`.
+//!
+//! ## Algorithm
+//! 1. Handle degenerate case `num_rows == 1` (return `s`).  
+//! 2. Compute:
 //!    - `n = s.len()`  
 //!    - `num_rows = num_rows as usize`  
-//!    - `cycle = 2*(num_rows−1)`  
-//! 3. Allocate `res_stack` with capacity `n` to collect output bytes.  
-//! 4. For each row index `r` in `0..num_rows`:
-//!    a. Compute `jump_even = cycle − 2*r` and `jump_odd = 2*r`.  
-//!    b. If either jump is zero, reset it to `cycle`.  
-//!    c. Initialize a cursor `pos = r` and a flag `use_even = true`.  
-//!    d. While `pos < n`:
-//!       - Push `sbytes[pos]` onto `res_stack`.  
+//!    - `cycle = 2 * (num_rows - 1)`  
+//! 3. Convert `s` to bytes and prepare an output buffer of capacity `n`.  
+//! 4. For each row `r` in `0..num_rows`:
+//!    a. Compute `jump_even = cycle - 2 * r` and `jump_odd = 2 * r`, substituting `cycle` if zero.  
+//!    b. Initialize `pos = r` and `use_even = true`.  
+//!    c. While `pos < n`:
+//!       - Append `sbytes[pos]` to the buffer.  
 //!       - Advance `pos` by `jump_even` if `use_even`, else by `jump_odd`.  
 //!       - Toggle `use_even`.  
-//! 5. Convert `res_stack` back to a `String` using `from_utf8_unchecked`.  
-//!  
-//! Time Complexity: O(n), since each character is visited exactly once.  
-//! Space Complexity: O(n), for the output buffer of size `n`.  
+//! 5. Convert buffer back to `String` with `from_utf8_unchecked`.
+//!
+//! ## Time Complexity
+//! O(n), each character visited once.
+//!
+//! ## Space Complexity
+//! O(n), for the output buffer.
 
 pub struct Solution;
 
 impl Solution {
+    /// Converts a string into its zigzag pattern and reads it line by line.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` – The input string to convert.
+    /// * `num_rows` – The number of rows in the zigzag pattern.
+    ///
+    /// # Returns
+    ///
+    /// * `String` – The zigzag‑converted string.
+    #[inline]
     pub fn convert(s: String, num_rows: i32) -> String {
-        // If there's only one row, the ZigZag is identical to the original string
+        // If only one row, the zigzag pattern is identical to the original string.
         if num_rows == 1 {
-            return s; // early return for degenerate case
+            return s;
         }
 
-        // Prepare for traversal
-        let n: usize = s.len(); // total number of bytes in the string
-        let num_rows: usize = num_rows as usize; // convert row count to usize
-        let cycle: usize = 2 * (num_rows - 1); // full down‑then‑up cycle length
+        // Determine the total number of bytes in the string.
+        let n: usize = s.len();
 
-        let sbytes: &[u8] = s.as_bytes(); // borrow string as byte slice
-        let mut res_stack: Vec<u8> = Vec::with_capacity(n); // output buffer for zigzag order
+        // Convert the row count from i32 to usize for indexing.
+        let num_rows: usize = num_rows as usize;
 
-        // Iterate over each row in the ZigZag pattern
+        // Compute the length of one full zigzag cycle (down then up).
+        let cycle: usize = 2 * (num_rows - 1);
+
+        // Borrow the string as a slice of bytes for O(1) indexing.
+        let sbytes: &[u8] = s.as_bytes();
+
+        // Prepare a buffer to collect the resulting characters in order.
+        let mut res_stack: Vec<u8> = Vec::with_capacity(n);
+
+        // Process each row of the zigzag pattern.
         for r in 0..num_rows {
-            // Compute the two alternating jump sizes for this row
-            let mut jump_even: usize = cycle.saturating_sub(2 * r); // vertical jump
-            let mut jump_odd: usize = 2 * r; // diagonal jump
+            // Compute the jump length when moving vertically down.
+            let mut jump_even: usize = cycle.saturating_sub(2 * r);
 
-            // If a jump is zero (first or last row), use the full cycle
+            // Compute the jump length when moving diagonally up.
+            let mut jump_odd: usize = 2 * r;
+
+            // If vertical jump is zero (first or last row), use the full cycle.
             if jump_even == 0 {
-                jump_even = cycle; // no vertical move → full cycle
+                jump_even = cycle;
             }
 
+            // If diagonal jump is zero (first or last row), use the full cycle.
             if jump_odd == 0 {
-                jump_odd = cycle; // no diagonal move → full cycle
+                jump_odd = cycle;
             }
 
-            // Traverse this row by alternating between the two jumps
-            let mut pos: usize = r; // starting position in the string
-            let mut use_even = true; // start with the "even" jump
+            // Initialize position to the start of this row.
+            let mut pos: usize = r;
 
+            // Flag indicating which jump to use next (start with even).
+            let mut use_even: bool = true;
+
+            // Traverse positions for this row until the end of the string.
             while pos < n {
-                res_stack.push(sbytes[pos]); // collect current character
+                // Collect the character at the current position.
+                res_stack.push(sbytes[pos]);
 
-                // Advance by the appropriate jump size
+                // Advance position by the appropriate jump length.
                 if use_even {
-                    pos += jump_even; // vertical‑down step
+                    pos += jump_even;
                 } else {
-                    pos += jump_odd; // diagonal‑up step
+                    pos += jump_odd;
                 }
 
-                use_even = !use_even; // flip for next iteration
+                // Toggle between even and odd jumps for next step.
+                use_even = !use_even;
             }
         }
 
-        // SAFETY: res_stack contains exactly the original UTF‑8 bytes in new order
+        // SAFETY: res_stack contains all original bytes in valid UTF‑8 order.
         unsafe { String::from_utf8_unchecked(res_stack) }
     }
 }
