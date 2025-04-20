@@ -33,6 +33,19 @@
 pub struct Solution;
 
 impl Solution {
+    //    0  1  2  3  4  5  6  7  8  9 10 11 12 13
+    //    P  A  Y  P  A  L  I  S  H  I  R  I  N  G
+    //-> Expected Output for num_rows = 4
+    //    0  1  2  3  4  5  6  7  8  9 10 11 12 13
+    //    P  I  N  A  L  S  I  G  Y  A  H  R  P  I
+    //
+    // ZigZag Pattern:
+    //
+    // Row 0: P     I     N
+    // Row 1: A   L S   I G
+    // Row 2: Y A   H R
+    // Row 3: P     I
+    ///
     /// Converts a string into its zigzag pattern and reads it line by line.
     ///
     /// # Arguments
