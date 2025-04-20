@@ -1,4 +1,4 @@
-//! # Lowest Common Ancestor of a BST (Reference using `cmp`/`match`)
+//! # Lowest Common Ancestor of a BST
 //!
 //! ## Intuition
 //! 1. Extract the integer values of `p` and `q` once.
