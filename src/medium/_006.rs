@@ -1,142 +1,83 @@
+//! Intuition:
+//! 1. The ZigZag pattern writes characters in a down‑then‑up diagonal across `num_rows` rows.
+//! 2. Reading row‑by‑row is equivalent to jumping through the string by alternating step sizes.
+//! 3. For each row `i`, the two jumps are:
+//!    - `jump_even = 2*(num_rows−1) − 2*i` (vertical‑down to diagonal‑up transition), and
+//!    - `jump_odd  = 2*i`            (diagonal‑up back to vertical‑down transition).
+//! 4. If either jump is zero (for the first or last row), we substitute the full cycle `2*(num_rows−1)`.
+//!
+//! Algorithm:
+//! 1. If `num_rows == 1`, return `s` unchanged (no ZigZag).  
+//! 2. Convert `s` to bytes for O(1) indexing and compute:
+//!    - `n = s.len()`  
+//!    - `num_rows = num_rows as usize`  
+//!    - `cycle = 2*(num_rows−1)`  
+//! 3. Allocate `res_stack` with capacity `n` to collect output bytes.  
+//! 4. For each row index `r` in `0..num_rows`:
+//!    a. Compute `jump_even = cycle − 2*r` and `jump_odd = 2*r`.  
+//!    b. If either jump is zero, reset it to `cycle`.  
+//!    c. Initialize a cursor `pos = r` and a flag `use_even = true`.  
+//!    d. While `pos < n`:
+//!       - Push `sbytes[pos]` onto `res_stack`.  
+//!       - Advance `pos` by `jump_even` if `use_even`, else by `jump_odd`.  
+//!       - Toggle `use_even`.  
+//! 5. Convert `res_stack` back to a `String` using `from_utf8_unchecked`.  
+//!  
+//! Time Complexity: O(n), since each character is visited exactly once.  
+//! Space Complexity: O(n), for the output buffer of size `n`.  
+
 pub struct Solution;
 
-///
-/// PAYPALISHIRING
-///
-/// P           I           N
-/// A       L   S       I   G
-/// Y   A       H   R
-/// P           I   
-///
-/// PAYPALISHIRING -> PINALSIGYAHRPI
-///
 impl Solution {
     pub fn convert(s: String, num_rows: i32) -> String {
-        let num_rows: usize = num_rows as usize;
-
-        if num_rows == 1 || num_rows >= s.len() {
-            return s;
-        }
-
-        let mut current_row: usize = 0;
-        let mut dp: Vec<String> = vec!["".into(); num_rows];
-        let mut direction: i32 = -1;
-
-        for ch in s.chars() {
-            dp[current_row].push(ch);
-
-            if current_row == 0 || current_row == num_rows - 1 {
-                direction *= -1;
-            }
-
-            current_row = (current_row as i32 + direction) as usize;
-        }
-
-        dp.iter()
-            .flat_map(|s: &String| s.as_str().chars())
-            .collect()
-    }
-}
-
-pub struct SolutionOpt;
-
-impl SolutionOpt {
-    ///
-    /// 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-    /// P  A  Y  P  A  L  I  S  H  I  R  I  N  I  N  G
-    ///
-    /// n = 4, Rows produced by alternating
-    ///
-    /// 0  6 12
-    /// P  I  N -> i = 0, jump_even = 6, jump_odd = 6
-    ///
-    /// 1  5  7 11 13
-    /// A  L  S  I  G -> i = 1, jump_even = 4, jump_odd = 2
-    ///
-    /// 2  4  8 10
-    /// Y  A  H  R -> i = 2, jump_even = 2, jump_odd = 4
-    ///
-    /// 3  9
-    /// P  I -> i = 3, jump_even = 6, jump_odd = 6
-    ///
-    pub fn convert(s: String, num_rows: i32) -> String {
+        // If there's only one row, the ZigZag is identical to the original string
         if num_rows == 1 {
-            return s;
+            return s; // early return for degenerate case
         }
 
-        let n: usize = s.len();
-        let sbytes: &[u8] = s.as_bytes();
-        let num_rows: usize = num_rows as usize;
-        let max_jump: usize = 2 * (num_rows - 1);
-        let mut res: Vec<u8> = Vec::with_capacity(n);
+        // Prepare for traversal
+        let n: usize = s.len(); // total number of bytes in the string
+        let num_rows: usize = num_rows as usize; // convert row count to usize
+        let cycle: usize = 2 * (num_rows - 1); // full down‑then‑up cycle length
 
-        for mut i in 0..num_rows {
-            let mut jump_even = max_jump - 2 * i;
-            let mut jump_odd = 2 * i;
+        let sbytes: &[u8] = s.as_bytes(); // borrow string as byte slice
+        let mut res_stack: Vec<u8> = Vec::with_capacity(n); // output buffer for zigzag order
 
+        // Iterate over each row in the ZigZag pattern
+        for r in 0..num_rows {
+            // Compute the two alternating jump sizes for this row
+            let mut jump_even: usize = cycle.saturating_sub(2 * r); // vertical jump
+            let mut jump_odd: usize = 2 * r; // diagonal jump
+
+            // If a jump is zero (first or last row), use the full cycle
             if jump_even == 0 {
-                jump_even = max_jump;
+                jump_even = cycle; // no vertical move → full cycle
             }
 
             if jump_odd == 0 {
-                jump_odd = max_jump;
+                jump_odd = cycle; // no diagonal move → full cycle
             }
 
-            let mut is_even: bool = true;
+            // Traverse this row by alternating between the two jumps
+            let mut pos: usize = r; // starting position in the string
+            let mut use_even = true; // start with the "even" jump
 
-            loop {
-                if i >= n {
-                    break;
-                }
+            while pos < n {
+                res_stack.push(sbytes[pos]); // collect current character
 
-                res.push(sbytes[i]);
-                i += if is_even { jump_even } else { jump_odd };
-                is_even = !is_even;
-            }
-        }
-
-        unsafe { String::from_utf8_unchecked(res) }
-    }
-}
-
-pub struct SolutionAlt;
-
-impl SolutionAlt {
-    pub fn convert(s: String, num_rows: i32) -> String {
-        if num_rows == 1 {
-            return s;
-        }
-
-        let s = s.into_bytes();
-        let num_rows = num_rows as usize;
-        let period = num_rows * 2 - 2;
-        let mut answer = Vec::with_capacity(s.len());
-
-        for y in (0..s.len()).step_by(period) {
-            answer.push(s[y]);
-        }
-
-        for x in 1..(num_rows - 1) {
-            for y0 in (0..s.len()).step_by(period) {
-                if y0 + x < s.len() {
-                    answer.push(s[y0 + x]);
+                // Advance by the appropriate jump size
+                if use_even {
+                    pos += jump_even; // vertical‑down step
                 } else {
-                    break;
+                    pos += jump_odd; // diagonal‑up step
                 }
 
-                if y0 + period - x < s.len() {
-                    answer.push(s[y0 + period - x]);
-                } else {
-                    break;
-                }
+                use_even = !use_even; // flip for next iteration
             }
         }
 
-        for y in ((num_rows - 1)..s.len()).step_by(period) {
-            answer.push(s[y]);
-        }
-
-        unsafe { String::from_utf8_unchecked(answer) }
+        // SAFETY: res_stack contains exactly the original UTF‑8 bytes in new order
+        unsafe { String::from_utf8_unchecked(res_stack) }
     }
 }
 
@@ -145,20 +86,82 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_006_1() {
-        let test_str: String = "PAYPALISHIRING".into();
-        let test_num_rows: i32 = 3;
-        let expected: String = "PAHNAPLSIIGYIR".into();
-
-        assert_eq!(SolutionOpt::convert(test_str, test_num_rows), expected);
+    fn test_006_1_example_three_rows() {
+        let test_str = "PAYPALISHIRING".to_string();
+        let test_num_rows = 3;
+        let expected = "PAHNAPLSIIGYIR".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
     }
 
     #[test]
-    fn test_006_2() {
-        let test_str: String = "PAYPALISHIRING".into();
-        let test_num_rows: i32 = 4;
-        let expected: String = "PINALSIGYAHRPI".into();
+    fn test_006_2_example_four_rows() {
+        let test_str = "PAYPALISHIRING".to_string();
+        let test_num_rows = 4;
+        let expected = "PINALSIGYAHRPI".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
 
-        assert_eq!(SolutionOpt::convert(test_str, test_num_rows), expected);
+    #[test]
+    fn test_006_3_empty_string() {
+        let test_str = "".to_string();
+        let test_num_rows = 3;
+        let expected = "".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
+
+    #[test]
+    fn test_006_4_single_character() {
+        let test_str = "A".to_string();
+        let test_num_rows = 2;
+        let expected = "A".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
+
+    #[test]
+    fn test_006_5_one_row_no_zigzag() {
+        let test_str = "AB".to_string();
+        let test_num_rows = 1;
+        let expected = "AB".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
+
+    #[test]
+    fn test_006_6_two_rows_abcd() {
+        let test_str = "ABCD".to_string();
+        let test_num_rows = 2;
+        let expected = "ACBD".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
+
+    #[test]
+    fn test_006_7_two_rows_abcde() {
+        let test_str = "ABCDE".to_string();
+        let test_num_rows = 2;
+        let expected = "ACEBD".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
+
+    #[test]
+    fn test_006_8_three_rows_abcde() {
+        let test_str = "ABCDE".to_string();
+        let test_num_rows = 3;
+        let expected = "AEBDC".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
+
+    #[test]
+    fn test_006_9_no_transform_one_row() {
+        let test_str = "PAYPALISHIRING".to_string();
+        let test_num_rows = 1;
+        let expected = "PAYPALISHIRING".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
+    }
+
+    #[test]
+    fn test_006_10_rows_exceed_length() {
+        let test_str = "SHORT".to_string();
+        let test_num_rows = 10;
+        let expected = "SHORT".to_string();
+        assert_eq!(Solution::convert(test_str, test_num_rows), expected);
     }
 }
