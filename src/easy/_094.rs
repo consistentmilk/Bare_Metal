@@ -28,16 +28,17 @@ Space Complexity:
 - Iterative: O(h) due to the explicit stack, where h is the height of the tree.
 */
 
-use std::cell::RefCell;
 // The `RefCell` type allows mutable borrows checked at runtime.
-use std::rc::Rc;
+use std::cell::RefCell;
+
 // `Rc` provides shared ownership of tree nodes.
+use std::rc::Rc;
 
-use crate::utils::tree::*;
 // Import the `TreeNode` definition and related utilities.
+use crate::utils::tree::*;
 
-pub struct Solution;
 // Empty struct to hold the solution methods.
+pub struct Solution;
 
 impl Solution {
     // LEFT → ROOT → RIGHT recursive inorder traversal.
@@ -87,7 +88,7 @@ impl Solution {
                 // Push the current node onto the stack.
                 node_stack.push(node.clone());
 
-                // Move `curr` to the left child.
+                // Move current to the left child.
                 current = node.borrow().left.clone();
             }
 
