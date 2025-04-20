@@ -1,49 +1,108 @@
+/*
+Intuition:
+1. Inorder traversal follows the LEFT → ROOT → RIGHT visitation order.
+2. Recursion naturally leverages the call stack to traverse subtrees in that order.
+3. An explicit stack can simulate that call stack for an iterative solution.
+4. Both approaches visit each node exactly once in the correct sequence.
+
+Algorithm:
+- Recursive version:
+  1. If the current node is None, do nothing.
+  2. Recursively traverse the left subtree.
+  3. Visit the current node by appending its value to the result vector.
+  4. Recursively traverse the right subtree.
+
+- Iterative version:
+  1. Initialize an empty stack and set `curr` to the root.
+  2. While `curr` is not None or the stack is not empty:
+     a. Drill down to the leftmost node: push each visited node onto the stack and move `curr` to its left child.
+     b. Once you reach a None, pop the top node from the stack.
+     c. Visit that node by appending its value to the result vector.
+     d. Set `curr` to the right child of the popped node and repeat.
+
+Time Complexity:
+- O(n), where n is the number of nodes, since each node is processed exactly once.
+
+Space Complexity:
+- Recursive: O(h) due to call stack, where h is the height of the tree.
+- Iterative: O(h) due to the explicit stack, where h is the height of the tree.
+*/
+
 use std::cell::RefCell;
+// The `RefCell` type allows mutable borrows checked at runtime.
 use std::rc::Rc;
+// `Rc` provides shared ownership of tree nodes.
 
 use crate::utils::tree::*;
+// Import the `TreeNode` definition and related utilities.
+
 pub struct Solution;
+// Empty struct to hold the solution methods.
 
 impl Solution {
-    // LEFT - ROOT - RIGHT
+    // LEFT → ROOT → RIGHT recursive inorder traversal.
+    // Suppress warnings if this method goes unused.
     pub fn inorder_traversal(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
-        let mut res_vec: Vec<i32> = Vec::new();
+        // Initialize the result vector to collect node values.
+        let mut res_stack: Vec<i32> = Vec::new();
 
-        Self::traverse(root, &mut res_vec);
+        // Kick off the recursive helper to fill `res_stack`.
+        Self::traverse(root, &mut res_stack);
 
-        res_vec
+        // Return the populated result vector.
+        res_stack
     }
 
-    fn traverse(root: Option<Rc<RefCell<TreeNode>>>, res_vec: &mut Vec<i32>) {
+    // Helper function for the recursive inorder traversal.
+    fn traverse(root: Option<Rc<RefCell<TreeNode>>>, res_stack: &mut Vec<i32>) {
+        // If the current node exists, proceed; otherwise, return immediately.
         if let Some(node) = root {
-            Self::traverse(node.borrow().left.clone(), res_vec);
+            // Recurse into the left subtree first.
+            Self::traverse(node.borrow().left.clone(), res_stack);
 
-            res_vec.push(node.borrow().val);
+            // Visit the node: extract its value and append to `res_stack`.
+            res_stack.push(node.borrow().val);
 
-            Self::traverse(node.borrow().right.clone(), res_vec);
+            // Recurse into the right subtree.
+            Self::traverse(node.borrow().right.clone(), res_stack);
         }
     }
 
+    // Iterative inorder traversal using an explicit stack.
+    // Suppress warnings if this method goes unused.
     pub fn inorder_traversal_iterative(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
-        let mut res_vec: Vec<i32> = Vec::new();
-        let mut stack: Vec<Rc<RefCell<TreeNode>>> = Vec::new();
-        let mut curr = root;
+        // Result vector to collect node values.
+        let mut res_stack: Vec<i32> = Vec::new();
 
-        while curr.is_some() || !stack.is_empty() {
-            while let Some(node) = curr {
-                stack.push(node.clone());
+        // Stack to simulate the recursion call stack.
+        let mut node_stack: Vec<Rc<RefCell<TreeNode>>> = Vec::new();
 
-                curr = node.borrow().left.clone();
+        // Start traversal at the root.
+        let mut current: Option<Rc<RefCell<TreeNode>>> = root;
+
+        // Continue until there are no nodes left to visit.
+        while current.is_some() || !node_stack.is_empty() {
+            // Travel to the leftmost node.
+            while let Some(node) = current {
+                // Push the current node onto the stack.
+                node_stack.push(node.clone());
+
+                // Move `curr` to the left child.
+                current = node.borrow().left.clone();
             }
 
-            if let Some(node) = stack.pop() {
-                res_vec.push(node.borrow().val);
+            // Pop the top node from the stack once leftmost is reached.
+            if let Some(node) = node_stack.pop() {
+                // Visit the node: append its value to `res_stack`.
+                res_stack.push(node.borrow().val);
 
-                curr = node.borrow().right.clone();
+                // Switch to the right subtree of the popped node.
+                current = node.borrow().right.clone();
             }
         }
 
-        res_vec
+        // Return the collected inorder sequence.
+        res_stack
     }
 }
 
