@@ -1,34 +1,34 @@
-//! # Zigzag Conversion (LeetCode 6)
-//!
-//! ## Intuition
-//! 1. Characters are placed in a down‑then‑up diagonal across `num_rows` rows.
-//! 2. Reading row by row corresponds to jumping through the string with alternating steps.
-//! 3. For row `r`, the jumps are:
-//!    - `jump_even = cycle - 2 * r`
-//!    - `jump_odd  = 2 * r`
-//! 4. If a jump is zero, replace it with `cycle`.
-//!
-//! ## Algorithm
-//! 1. Handle degenerate case `num_rows == 1` (return `s`).  
-//! 2. Compute:
-//!    - `n = s.len()`  
-//!    - `num_rows = num_rows as usize`  
-//!    - `cycle = 2 * (num_rows - 1)`  
-//! 3. Convert `s` to bytes and prepare an output buffer of capacity `n`.  
-//! 4. For each row `r` in `0..num_rows`:
-//!    a. Compute `jump_even = cycle - 2 * r` and `jump_odd = 2 * r`, substituting `cycle` if zero.  
-//!    b. Initialize `pos = r` and `use_even = true`.  
-//!    c. While `pos < n`:
-//!       - Append `sbytes[pos]` to the buffer.  
-//!       - Advance `pos` by `jump_even` if `use_even`, else by `jump_odd`.  
-//!       - Toggle `use_even`.  
-//! 5. Convert buffer back to `String` with `from_utf8_unchecked`.
-//!
-//! ## Time Complexity
-//! O(n), each character visited once.
-//!
-//! ## Space Complexity
-//! O(n), for the output buffer.
+/// # Zigzag Conversion (LeetCode 6)
+///
+/// ## Intuition
+/// 1. Characters are placed in a down‑then‑up diagonal across `num_rows` rows.
+/// 2. Reading row by row corresponds to jumping through the string with alternating steps.
+/// 3. For row `r`, the jumps are:
+///    - `jump_even = cycle - 2 * r`
+///    - `jump_odd  = 2 * r`
+/// 4. If a jump is zero, replace it with `cycle`.
+///
+/// ## Algorithm
+/// 1. Handle degenerate case `num_rows == 1` (return `s`).  
+/// 2. Compute:
+///    - `n = s.len()`  
+///    - `num_rows = num_rows as usize`  
+///    - `cycle = 2 * (num_rows - 1)`  
+/// 3. Convert `s` to bytes and prepare an output buffer of capacity `n`.  
+/// 4. For each row `r` in `0..num_rows`:
+///    a. Compute `jump_even = cycle - 2 * r` and `jump_odd = 2 * r`, substituting `cycle` if zero.  
+///    b. Initialize `pos = r` and `use_even = true`.  
+///    c. While `pos < n`:
+///       - Append `sbytes[pos]` to the buffer.  
+///       - Advance `pos` by `jump_even` if `use_even`, else by `jump_odd`.  
+///       - Toggle `use_even`.  
+/// 5. Convert buffer back to `String` with `from_utf8_unchecked`.
+///
+/// ## Time Complexity
+/// O(n), each character visited once.
+///
+/// ## Space Complexity
+/// O(n), for the output buffer.
 
 pub struct Solution;
 
@@ -121,6 +121,73 @@ impl Solution {
 
         // SAFETY: res_stack contains all original bytes in valid UTF‑8 order.
         unsafe { String::from_utf8_unchecked(res_stack) }
+    }
+}
+
+/// Problem: LeetCode 6 - Zigzag Conversion
+///
+/// ## Intuition
+/// - Treat the zigzag pattern as a traversal of rows: top → bottom → top → ...
+/// - For each character, append it to the current row.
+/// - Flip direction when you hit the top or bottom row.
+///
+/// ## Algorithm
+/// 1. Create a `Vec<String>` of size `num_rows` to hold each row’s characters.
+/// 2. Track `curr_row` and `direction`: +1 when moving down, -1 when moving up.
+/// 3. For each character in `s`:
+///    - Append it to the current row.
+///    - Flip direction if we’re at the top (0) or bottom (`num_rows - 1`).
+///    - Move to the next row based on direction.
+/// 4. Join all row strings to build the final output.
+///
+/// ## Time Complexity: O(n), where n = s.len()
+/// ## Space Complexity: O(n), for storing row buffers
+
+pub struct SolutionIntuitive;
+
+impl SolutionIntuitive {
+    /// Converts a string into zigzag format with `num_rows` and flattens it line by line.
+    ///
+    /// # Arguments
+    /// * `s` – Input string to be converted.
+    /// * `num_rows` – Number of rows in the zigzag pattern.
+    ///
+    /// # Returns
+    /// * `String` – Zigzag flattened line by line.
+    pub fn convert(s: String, num_rows: i32) -> String {
+        // If only one row, there's no zigzag.
+        if num_rows == 1 {
+            return s;
+        }
+
+        // Total number of rows (as usize)
+        let num_rows: usize = num_rows as usize;
+
+        // Vector of row strings (buffers for each row)
+        let mut pattern: Vec<String> = vec![String::new(); num_rows];
+
+        // Direction of movement: -1 (up) or +1 (down)
+        let mut direction: i32 = -1;
+
+        // Current row we're writing into
+        let mut curr_row: usize = 0;
+
+        // Traverse each character in the input
+        for ch in s.chars() {
+            // Append the character to the current row's buffer
+            pattern[curr_row].push(ch);
+
+            // If we're at the top or bottom, reverse direction
+            if curr_row == 0 || curr_row == num_rows - 1 {
+                direction *= -1;
+            }
+
+            // Move to the next row
+            curr_row = ((curr_row as i32) + direction) as usize;
+        }
+
+        // Concatenate all row buffers into a single output string
+        pattern.concat()
     }
 }
 
