@@ -125,6 +125,7 @@ mod bench_392;
 mod bench_393;
 mod bench_394;
 mod bench_396;
+mod bench_412;
 mod bench_463;
 mod bench_648;
 mod bench_729;
@@ -260,5 +261,6 @@ criterion_main!(
     bench_065::group_hard_065,
     bench_037::group_hard_037,
     bench_025::group_hard_025,
-    bench_030::group_hard_030
+    bench_030::group_hard_030,
+    bench_412::group_easy_412,
 );
