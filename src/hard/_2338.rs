@@ -340,23 +340,30 @@ impl SolutionOpt {
     fn modpow(mut base: i64, mut exp: i64, m: i64) -> i64 {
         let mut result: i64 = 1i64;
 
-        // Ensure base is within modulus
+        // 1. Reduce base modulo m so it starts in [0..m‑1]
         base %= m;
 
-        // Iterate until exponent is zero
+        // 2. Loop as long as there are bits left in exp
         while exp > 0 {
-            // If least significant bit of exp is 1, multiply result
+            // 2a. If the current least‑significant bit of exp is 1,
+            //     multiply it into our accumulating result.
+            //     This accounts for that “power-of-two” factor.
             if exp & 1 == 1 {
-                result = result * base % m;
+                result = (result * base) % m;
             }
 
-            // Square base for next bit
-            base = base * base % m;
+            // 2b. Square the base: we’re moving to the next bit,
+            //     so base ← base² mod m. This prepares the factor
+            //     for the next higher bit in exp.
+            base = (base * base) % m;
 
-            // Shift exp right by 1 bit
+            // 2c. Shift exp right by 1 bit, discarding the bit we just processed.
             exp >>= 1;
         }
 
+        // 3. Once exp hits zero, we have multiplied in exactly those
+        //    powers of base corresponding to the 1‑bits of the original exp.
+        //    `result` now equals (original_base^original_exp) mod m.
         result
     }
 }
