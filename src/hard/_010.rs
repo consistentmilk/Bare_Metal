@@ -22,19 +22,25 @@ close-to-linear behaviour on many practical inputs.
 
 Algorithm
 ---------
-1. Build `star_of[j] = true` if `p[j] == '*'` (single scan).
-2. Initialise a 1-D `dp` where `dp[j]` ⇒ s[0..i] matches p[0..j].
-3. Pre-fill `dp` for an empty string using the rule `"x*"` → "".
-4. For each byte `s[i-1]`:
-   a. Reset `dp[0] = false` (non-empty s cannot match empty pattern).
-   b. Iterate `j = 1..n`:
-      · If `p[j-1] != '*'`
-          `dp[j] = prev && char_eq`
-      · Else (`'*'`)
-          `dp[j] = dp[j-2] || (dp[j] && char_eq_prev)`
-      Only two temporaries (`prev`, `temp`) are needed.
-5. Early break if `dp_rest_possible` is false (pruning).
-6. Return `dp[n]`.
+1. Convert s and p to byte slices for O(1) char access.
+2. Build star_of[] marking '*' in pattern.
+3. Initialize dp[0..=n] with dp[0] = true.
+4. Pre-fill dp for empty s matching patterns (x*, x*y*, ...).
+5. For i in 1..=m:
+    a. Save prev = dp[0], set dp[0] = false, any_true = false.
+    b. For j in 1..=n:
+    - If p[j-1] != '*':
+        dp[j] = prev
+            && (pb[j-1] == b'.'
+                || pb[j-1] == sb[i-1])
+    - Else:
+        dp[j] = dp[j-2]
+            || (dp[j]
+                && (pb[j-2] == b'.'
+                    || pb[j-2] == sb[i-1]))
+    - Update any_true, prev.
+    c. If !any_true, return false.
+6. Return dp[n] as final result.
 
 Time Complexity   O(m · n) worst-case
 Space Complexity  O(n)
@@ -85,7 +91,7 @@ impl Solution {
 
             // Traverse pattern
             for j in 1..=n {
-                let temp = dp[j];
+                let temp: bool = dp[j];
 
                 if !star_of[j - 1] {
                     // Non-star case
@@ -113,6 +119,78 @@ impl Solution {
 
         // Final cell tells if full pattern matches full string
         dp[n]
+    }
+}
+
+/*
+Intuition:
+  Build a 2D table dp where dp[i][j] is true if s[i:]
+  matches p[j:], filling from end to start.
+Algorithm:
+  1. Convert s,p to byte slices sb,pb.
+  2. Let m=sb.len(), n=pb.len().
+  3. Create dp table of size (m+1)x(n+1), initialized false.
+  4. Set dp[m][n]=true for empty vs empty.
+  5. Pre-fill dp[m][j] for patterns where p[j+1]=='*':
+       dp[m][j] = dp[m][j+2].
+  6. For i from m-1 down to 0:
+       for j from n-1 down to 0:
+         first_match = (pb[j]==b'.') || (pb[j]==sb[i])
+         if j+1<n && pb[j+1]==b'*':
+           dp[i][j] = dp[i][j+2]
+                    || (first_match && dp[i+1][j])
+         else:
+           dp[i][j] = first_match && dp[i+1][j+1]
+  7. Return dp[0][0].
+Time Complexity: O(m * n)
+Space Complexity: O(m * n)
+*/
+
+pub struct SolutionAlt;
+
+impl SolutionAlt {
+    /// Determine if s matches p with '.' and '*'.
+    pub fn is_match(s: String, p: String) -> bool {
+        // Convert input string to byte slice.
+        let sb: &[u8] = s.as_bytes();
+        // Convert pattern string to byte slice.
+        let pb: &[u8] = p.as_bytes();
+        // Length of string.
+        let m: usize = sb.len();
+        // Length of pattern.
+        let n: usize = pb.len();
+
+        // Create DP table (m+1 rows of n+1 columns).
+        let mut dp: Vec<Vec<bool>> = vec![vec![false; n + 1]; m + 1];
+        // Base case: empty string matches empty pattern.
+        dp[m][n] = true;
+
+        // Pre-fill for empty string matching 'x*' patterns.
+        for j in (0..n).rev() {
+            if j + 1 < n && pb[j + 1] == b'*' {
+                dp[m][j] = dp[m][j + 2];
+            }
+        }
+
+        // Fill table bottom-up.
+        for i in (0..m).rev() {
+            for j in (0..n).rev() {
+                // Check if current characters match or pattern is '.'.
+                let first_match: bool = (pb[j] == b'.') || (pb[j] == sb[i]);
+     
+                // Handle '*' wildcard.
+                if j + 1 < n && pb[j + 1] == b'*' {
+                    // Skip 'x*' or use one 'x'.
+                    dp[i][j] = dp[i][j + 2] || (first_match && dp[i + 1][j]);
+                } else {
+                    // No '*': must match current char and rest.
+                    dp[i][j] = first_match && dp[i + 1][j + 1];
+                }
+            }
+        }
+
+        // Final result for full strings.
+        dp[0][0]
     }
 }
 
