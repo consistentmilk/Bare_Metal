@@ -170,69 +170,104 @@ impl Solution {
 }
 
 /*
-Intuition:
-  Every ideal array of length n and max_value M corresponds to
-  selecting, for each integer x in [1..M], how its prime exponents
-  distribute across the n positions. If x = ∏ pᵢ^eᵢ, each exponent eᵢ
-  can be split into n nonnegative parts in C(n + eᵢ - 1, eᵢ) ways.
-  Summing these products over all x yields the total count.
+==============================================================================
+   Ideal Arrays — Optimised Prime-Exponent Solution
+==============================================================================
 
-Algorithm:
-  1. Build a sieve of minimum prime factors up to M.
-  2. Estimate max_e = ⌊log₂ M⌋ + 1 for the largest exponent.
-  3. Precompute factorials and inv_factorials up to max_e.
-  4. Build comb[e] = C(n + e - 1, e) for e in 0..=max_e.
-  5. For each x from 2 to M:
-       a. Factor x on the fly via the sieve, counting each prime’s
-          exponent cnt.
-       b. Multiply ways by comb[cnt] mod MOD.
-       c. Add ways to the global answer.
-     Include x=1’s contribution (1).
-  6. Return answer % MOD.
+Perspective
+-----------
+An “ideal” length-n array is uniquely determined by its final element x
+(1 ≤ x ≤ M).  Decompose
 
-Time Complexity:
-  • Sieve: O(M log M)
-  • On‑the‑fly factorization: O(M log M) total
-  • Combination precompute: O(max_e)
-  Overall: O(M log M)
+        x = ∏ pᵢ^{eᵢ}.
 
-Space Complexity:
-  • O(M) for the sieve array
-  • O(max_e) for factorials, inv_factorials, comb
-  Total: O(M + log M)
+For each prime exponent eᵢ we must distribute eᵢ indistinguishable balls
+into n ordered boxes (array positions).  The classical stars-and-bars
+count is
+
+        C(n + eᵢ − 1, eᵢ).
+
+Because the prime factors are independent, the number of arrays that end
+in x is the product of these binomial coefficients over all eᵢ.  Summing
+this product for every x ∈ [1, M] yields the desired total.
+
+Algorithm (asymptotically tight)
+--------------------------------
+1.  **Linear sieve.**  Compute the smallest prime factor (spf) for every
+    integer ≤ M in O(M log log M) ⊂ O(M log M).
+
+2.  **Largest exponent bound.**  A prime power grows as 2^{max_e}; hence
+    max_e = ⌊log₂ M⌋ + 1 is sufficient.
+
+3.  **Combinatorial table.**  Pre-compute factorials and modular inverse
+    factorials up to max_e.  Build
+
+        comb[e] = C(n + e − 1, e)  (0 ≤ e ≤ max_e).
+
+4.  **Main loop.**  For x = 2..M:
+      a. Factor x on the fly via spf, counting each exponent cnt.
+      b. Multiply an accumulator by comb[cnt] (mod MOD).
+      c. Add the accumulator to the global answer.
+
+    Initialise the answer with 1 to account for x = 1.
+
+5.  Return answer mod 1 000 000 007.
+
+Complexity
+----------
+Time
+  • Sieve:                  Θ(M log log M)
+  • Total factorisation:    Θ(M log M)  (harmonic-series bound)
+  • Combinatorial table:    Θ(max_e) = Θ(log M)
+  • Aggregate:              Θ(M log M)
+
+Space
+  • spf array:              Θ(M)
+  • O(log M) for factorials, inverses, comb
+  • Aggregate:              Θ(M)
+
+This is optimal to leading order under the prime-factor framework: one
+must inspect every integer ≤ M at least once.
+==============================================================================
+*/
+
+/*
+============================================================================
+  Ideal Arrays — Optimised Prime-Exponent Algorithm
+  Detailed line-by-line commentary included.  Code width ≤ 70 columns.
+============================================================================
 */
 
 pub struct SolutionOpt;
 
 impl SolutionOpt {
+    //───────────────────────────────────────────────────────────────────────
+    // Public entry point: counts ideal arrays of length n with elements
+    // ≤ max_value.  Returns answer mod 1_000_000_007.
+    //───────────────────────────────────────────────────────────────────────
     pub fn ideal_arrays(n: i32, max_value: i32) -> i32 {
-        // Use 64-bit accumulator to prevent overflow before modulo
+        // Constant modulus required by the problem statement.
         const MOD: i64 = 1_000_000_007;
 
-        // Convert inputs to usize for indexing into Vecs
+        // Convert parameters to usize for indexing.
         let n: usize = n as usize;
         let m: usize = max_value as usize;
 
-        // -------------------------------
-        // 1) Build sieve of minimum primes
-        // -------------------------------
+        //───────────────────────────────────────────────────────────────
+        // 1)  Linear sieve — spf[v] = smallest prime factor of v.
+        //───────────────────────────────────────────────────────────────
+        let mut spf: Vec<usize> = vec![0; m + 1];
 
-        // Allocate array of size m+1, initialized to 0
-        // min_prime[x] will hold the smallest prime divisor of x
-        let mut min_prime: Vec<usize> = vec![0usize; m + 1];
-
-        // Iterate from 2 up to m to populate sieve
+        // Iterate through all integers 2‥=m.
         for i in 2..=m {
-            // If min_prime[i] is 0, i is prime
-            if min_prime[i] == 0 {
-                // Mark i as its own smallest prime factor
+            // i is prime if not yet marked.
+            if spf[i] == 0 {
+                // Mark i's multiples with smallest prime factor i.
                 let mut j: usize = i;
 
-                // For each multiple of i ≤ m
                 while j <= m {
-                    // If not already marked, set min_prime[j] = i
-                    if min_prime[j] == 0 {
-                        min_prime[j] = i;
+                    if spf[j] == 0 {
+                        spf[j] = i;
                     }
 
                     j += i;
@@ -240,131 +275,110 @@ impl SolutionOpt {
             }
         }
 
-        // --------------------------------------------------------
-        // 2) Determine maximum exponent needed: max_e ≈ log₂(m)
-        // --------------------------------------------------------
-
-        // Estimate largest exponent any prime can have in [1..m]
+        //───────────────────────────────────────────────────────────────
+        // 2)  Determine maximum exponent any prime can take in [1, m].
+        //     A prime ≥ 2 doubled k times gives 2ᵏ ≤ m ⇒ k ≤ log₂ m.
+        //───────────────────────────────────────────────────────────────
         let max_e: usize = (m as f64).log2().floor() as usize + 1;
 
-        // --------------------------------------------------------
-        // 3) Precompute factorials & inverse factorials up to max_e
-        // --------------------------------------------------------
+        //───────────────────────────────────────────────────────────────
+        // 3)  Pre-compute factorials and inverse factorials mod MOD
+        //     up to max_e, then build comb[e] = C(n+e-1, e).
+        //───────────────────────────────────────────────────────────────
 
-        // fact_e[e] = e! mod MOD, for e from 0..=max_e
-        let mut fact_e: Vec<i64> = vec![1i64; max_e + 1];
+        // fact[e] = e! mod MOD.
+        let mut fact: Vec<i64> = vec![1; max_e + 1];
 
         for e in 1..=max_e {
-            // Multiply previous factorial by e
-            fact_e[e] = fact_e[e - 1] * e as i64 % MOD;
+            fact[e] = fact[e - 1] * e as i64 % MOD;
         }
 
-        // inv_fact_e[e] = (e!)⁻¹ mod MOD, computed via Fermat
-        let mut inv_fact_e: Vec<i64> = vec![1i64; max_e + 1];
+        // inv_fact[e] = (e!)⁻¹ mod MOD using Fermat’s little theorem.
+        let mut inv_fact: Vec<i64> = vec![1; max_e + 1];
+        inv_fact[max_e] = Self::modpow(fact[max_e], MOD - 2, MOD);
 
-        // Compute inverse of max_e! using modular exponentiation
-        inv_fact_e[max_e] = Self::modinv(fact_e[max_e], MOD);
-
-        // Fill inv_fact in descending order using inv_fact[i] =
-        // inv_fact[i+1] * (i+1) mod MOD
         for e in (1..max_e).rev() {
-            inv_fact_e[e] = inv_fact_e[e + 1] * (e as i64 + 1) % MOD;
+            inv_fact[e] = inv_fact[e + 1] * (e as i64 + 1) % MOD;
         }
 
-        // --------------------------------------------------------
-        // 4) Build comb[e] = C(n+e-1, e) for e = 0..=max_e
-        // --------------------------------------------------------
+        // comb[e] holds C(n+e-1, e) for 0 ≤ e ≤ max_e.
+        let mut comb: Vec<i64> = vec![0; max_e + 1];
 
-        // comb[e] stores the number of ways to distribute exponent e
-        // across n positions: C(n+e-1, e)
-        let mut comb: Vec<i64> = vec![0i64; max_e + 1];
-
-        // Base case: C(n-1, 0) = 1
+        // Base case: C(n-1, 0) = 1.
         comb[0] = 1;
 
-        // numer accumulates product (n)*(n+1)*...*(n+e-1)
-        let mut numer: i64 = 1i64;
+        // numerator accumulates Π_{t=0}^{e-1} (n+t).
+        let mut numer: i64 = 1;
 
         for e in 1..=max_e {
-            // Multiply by the next term in numerator sequence
             numer = numer * (n + e - 1) as i64 % MOD;
-
-            // Divide by e! via multiplying inverse factorial
-            comb[e] = numer * inv_fact_e[e] % MOD;
+            comb[e] = numer * inv_fact[e] % MOD;
         }
 
-        // --------------------------------------------------------
-        // 5) Sum contributions for each x = 1..m
-        // --------------------------------------------------------
+        //───────────────────────────────────────────────────────────────
+        // 4)  Main summation over x = 1..m.
+        //     Initialise with x = 1 (no primes, contributes 1 array).
+        //───────────────────────────────────────────────────────────────
+        let mut ans: i64 = 1;
 
-        // Initialize answer with x=1’s contribution (no primes)
-        let mut ans: i64 = 1i64;
-
-        // For x from 2 to m, factor and accumulate ways
+        // Loop over every terminal value x.
         for x in 2..=m {
-            // Start with 1 way for this x
-            let mut ways: i64 = 1i64;
+            // ways accumulates product of comb[exponent] for x.
+            let mut ways: i64 = 1;
+
+            // y will be factored destructively.
             let mut y: usize = x;
 
-            // Factor y by repeatedly extracting min_prime[y]
+            // Factor y using spf table.
             while y > 1 {
-                // p = smallest prime divisor of y
-                let p: usize = min_prime[y];
+                // p = smallest prime factor of current y.
+                let p: usize = spf[y];
 
-                // Count how many times p divides y
+                // cnt = multiplicity of p in y.
                 let mut cnt: usize = 0;
 
                 while y % p == 0 {
                     y /= p;
                     cnt += 1;
                 }
-
-                // Multiply ways by comb[cnt], handling exponent cnt
+                // Multiply contribution for this exponent.
                 ways = ways * comb[cnt] % MOD;
             }
 
-            // Add this x’s total ways to the global answer
+            // Add contributions of x to global answer.
             ans = (ans + ways) % MOD;
         }
 
-        // Return final result as 32-bit integer
+        // Convert 64-bit accumulator back to i32.
         ans as i32
     }
 
-    // Compute modular inverse of a under modulus m via Fermat’s theorem
-    fn modinv(a: i64, m: i64) -> i64 {
-        Self::modpow(a, m - 2, m)
-    }
-
-    // Fast exponentiation: compute (base^exp) % m in O(log exp)
+    //───────────────────────────────────────────────────────────────────
+    // Compute modular exponentiation base^exp mod m in O(log exp).
+    //───────────────────────────────────────────────────────────────────
     fn modpow(mut base: i64, mut exp: i64, m: i64) -> i64 {
-        let mut result: i64 = 1i64;
+        // res starts as multiplicative identity.
+        let mut res: i64 = 1;
 
-        // 1. Reduce base modulo m so it starts in [0..m‑1]
+        // Ensure base ∈ [0, m-1].
         base %= m;
 
-        // 2. Loop as long as there are bits left in exp
+        // Process bits of exp from LSB upward.
         while exp > 0 {
-            // 2a. If the current least‑significant bit of exp is 1,
-            //     multiply it into our accumulating result.
-            //     This accounts for that “power-of-two” factor.
+            // If current bit of exp is 1, multiply res by base.
             if exp & 1 == 1 {
-                result = (result * base) % m;
+                res = (res * base) % m;
             }
 
-            // 2b. Square the base: we’re moving to the next bit,
-            //     so base ← base² mod m. This prepares the factor
-            //     for the next higher bit in exp.
+            // Square base for next bit.
             base = (base * base) % m;
 
-            // 2c. Shift exp right by 1 bit, discarding the bit we just processed.
+            // Drop the bit we just handled.
             exp >>= 1;
         }
 
-        // 3. Once exp hits zero, we have multiplied in exactly those
-        //    powers of base corresponding to the 1‑bits of the original exp.
-        //    `result` now equals (original_base^original_exp) mod m.
-        result
+        // res now equals base^original_exp mod m.
+        res
     }
 }
 
@@ -464,7 +478,7 @@ mod tests {
         // input max value
         let max_value: i32 = 1;
         // execute solution
-        let result = Solution::ideal_arrays(n, max_value);
+        let result: i32 = Solution::ideal_arrays(n, max_value);
         // expected result
         let expected: i32 = 1;
         assert_eq!(result, expected);
