@@ -90,6 +90,88 @@ impl Solution {
     }
 }
 
+/*
+===========================================================================
+ LeetCode 1399 — Count Largest Group
+ Optimised version (branch-free digit sums, O(1) memory)
+===========================================================================
+
+Intuition
+---------
+* We only need the **digit-sum** σ(i) for every i ∈ [1, n].
+* n ≤ 10 000 → σ(i) ∈ [1, 36].  We therefore keep a 37-element counter.
+* To avoid per-number division loops, pre-compute σ(i) in one pass:
+
+        σ(i) = σ(i / 10) + (i % 10)
+
+  Hence each σ(i) re-uses σ(i/10) already computed.
+
+Algorithm
+---------
+1. Allocate `cnt[37]` = 0.
+2. Initialise `digit_sum[0] = 0`.
+3. For i = 1 … n  
+      a. σ(i) = σ(i/10) + i%10   // one % and one table lookup  
+      b. cnt[σ(i)] += 1
+4. Scan `cnt` to find `max_size`.
+5. Scan again to count how many bins equal `max_size`.
+6. Return that count.
+
+Time Complexity
+---------------
+O(n) with **one** `% 10` and **no branches** per integer.
+
+Space Complexity
+----------------
+cnt[37]  +  digit_sum array ≤ 10 001 bytes → O(1).
+
+===========================================================================
+*/
+
+pub struct SolutionOpt;
+
+impl SolutionOpt {
+    //──────────────────────────────────────────────────────────────────────
+    // Main entry point
+    //──────────────────────────────────────────────────────────────────────
+    pub fn count_largest_group(n: i32) -> i32 {
+        // Counter: index = digit-sum (1..=36), value = bucket size.
+        let mut cnt: [i32; 37] = [0; 37];
+
+        // Pre-compute digit sums up to n on the fly.
+        // digit_sum[i] fits in u8 (≤ 36).  We reuse the same Vec to
+        // avoid a second pass.
+        let mut digit_sum: Vec<u8> = vec![0; n as usize + 1];
+
+        // i = 1 … n
+        for i in 1..=n as usize {
+            // σ(i) = σ(i / 10) + (i % 10)  (branch-free)
+            let sigma = digit_sum[i / 10] + (i % 10) as u8;
+
+            digit_sum[i] = sigma;                    // store for reuse
+            cnt[sigma as usize] += 1;                // update bucket
+        }
+
+        // Determine the maximum bucket size.
+        let mut max_size = 0;
+        for &c in &cnt[1..=36] {
+            if c > max_size {
+                max_size = c;
+            }
+        }
+
+        // Count how many buckets reach that maximum.
+        let mut groups = 0;
+        for &c in &cnt[1..=36] {
+            if c == max_size {
+                groups += 1;
+            }
+        }
+
+        groups
+    }
+}
+
 /*─────────────────────────────  Unit Tests  ─────────────────────────────*/
 
 #[cfg(test)]
