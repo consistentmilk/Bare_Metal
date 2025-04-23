@@ -110,8 +110,8 @@ Algorithm
 ---------
 1. Allocate `cnt[37]` = 0.
 2. Initialise `digit_sum[0] = 0`.
-3. For i = 1 … n  
-      a. σ(i) = σ(i/10) + i%10   // one % and one table lookup  
+3. For i = 1 … n
+      a. σ(i) = σ(i/10) + i%10   // one % and one table lookup
       b. cnt[σ(i)] += 1
 4. Scan `cnt` to find `max_size`.
 5. Scan again to count how many bins equal `max_size`.
@@ -146,14 +146,14 @@ impl SolutionOpt {
         // i = 1 … n
         for i in 1..=n as usize {
             // σ(i) = σ(i / 10) + (i % 10)  (branch-free)
-            let sigma = digit_sum[i / 10] + (i % 10) as u8;
+            let sigma: u8 = digit_sum[i / 10] + (i % 10) as u8;
 
-            digit_sum[i] = sigma;                    // store for reuse
-            cnt[sigma as usize] += 1;                // update bucket
+            digit_sum[i] = sigma; // store for reuse
+            cnt[sigma as usize] += 1; // update bucket
         }
 
         // Determine the maximum bucket size.
-        let mut max_size = 0;
+        let mut max_size: i32 = 0;
         for &c in &cnt[1..=36] {
             if c > max_size {
                 max_size = c;
@@ -162,6 +162,7 @@ impl SolutionOpt {
 
         // Count how many buckets reach that maximum.
         let mut groups = 0;
+        
         for &c in &cnt[1..=36] {
             if c == max_size {
                 groups += 1;
