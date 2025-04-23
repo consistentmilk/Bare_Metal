@@ -1,97 +1,153 @@
+/**
+Intuition:
+- Collapse the 2D DP table into one 1D array of length (n+1).
+- Use a `prev` variable to hold the "diagonal" (dp[i-1][j-1]) value.
+- Handle '*' via two cases: zero occurrences (dp[j-2]) or
+  one-or-more occurrences (prev dp[j] & char match).
+
+Algorithm:
+1. Convert `s` and `p` to byte arrays.
+2. Init `dp[0]=true`; pre-process pattern '*' for empty `s`.
+3. For each `i` in 1..=m:
+   a. Set `prev = dp[0]`, then `dp[0]=false`.
+   b. For each `j` in 1..=n, use `temp = dp[j]` to
+      update `dp[j]` by the recurrence above, then
+      set `prev = temp`.
+4. Return `dp[n]`.
+
+Time Complexity: O(m * n)
+Space Complexity: O(n)
+*/
 pub struct Solution;
 
 impl Solution {
-    pub fn is_match(text: String, pattern: String) -> bool {
-        let t_len = text.len();
-        let p_len = pattern.len();
+    // High-performance 1D-DP matcher
+    pub fn is_match(s: String, p: String) -> bool {
+        // convert inputs to byte slices
+        let s_bytes = s.as_bytes();
+        let p_bytes = p.as_bytes();
 
-        let mut dp: Vec<Vec<bool>> = vec![vec![false; p_len + 1]; t_len + 1];
-        dp[t_len][p_len] = true;
+        // lengths of string and pattern
+        let m = s_bytes.len();
+        let n = p_bytes.len();
 
-        let text = text.as_bytes();
-        let pattern = pattern.as_bytes();
+        // one-dimensional DP array
+        let mut dp = vec![false; n + 1];
 
-        for i in (0..=t_len).rev() {
-            for j in (0..p_len).rev() {
-                let first_match = i < t_len && (text[i] == pattern[j] || pattern[j] == b'.');
+        // empty string matches empty pattern
+        dp[0] = true;
 
-                if j + 1 < p_len && pattern[j + 1] == b'*' {
-                    dp[i][j] = dp[i][j + 2] || (first_match && dp[i + 1][j]);
-                } else {
-                    dp[i][j] = first_match && dp[i + 1][j + 1];
-                }
-            }
-        }
-
-        dp[0][0]
-    }
-
-    pub fn is_match_alt_1(s: String, p: String) -> bool {
-        let m: usize = s.len();
-        let n: usize = p.len();
-        let string: Vec<char> = s.chars().collect();
-        let pattern: Vec<char> = p.chars().collect();
-
-        let mut matches: Vec<Vec<bool>> = vec![vec![false; n + 1]; m + 1];
-        matches[m][n] = true;
-
-        for j in (0..(n - 1)).rev() {
-            if pattern[j + 1] == '*' {
-                matches[m][j] = matches[m][j + 2];
-            }
-        }
-
-        for i in (0..m).rev() {
-            for j in (0..n).rev() {
-                let target: char = pattern[j];
-                let kleene: bool = pattern.get(j + 1).map_or(false, |&c| c == '*');
-
-                let char_match: bool = target == '.' || target == string[i];
-
-                if !kleene {
-                    matches[i][j] = char_match && matches[i + 1][j + 1];
-                } else {
-                    matches[i][j] = (char_match && matches[i + 1][j]) || matches[i][j + 2];
-                }
-            }
-        }
-
-        matches[0][0]
-    }
-
-    pub fn is_match_alt_2(s: String, p: String) -> bool {
-        let s_chars: Vec<char> = s.chars().collect();
-        let p_chars: Vec<char> = p.chars().collect();
-        let (m, n) = (s.len(), p.len());
-
-        let mut dp: Vec<Vec<bool>> = vec![vec![false; n + 1]; 2];
-        dp[0][0] = true;
-
+        // handle patterns like a*, a*b*, etc., matching empty s
         for j in 1..=n {
-            if p_chars[j - 1] == '*' {
-                dp[0][j] = dp[0][j - 2];
+            // if current pattern char is '*'
+            if p_bytes[j - 1] == b'*' {
+                dp[j] = dp[j - 2];
             }
         }
 
+        // iterate over each character of s
         for i in 1..=m {
-            let curr: usize = i % 2;
-            let prev: usize = 1 - curr;
-
-            dp[curr][0] = false;
+            // prev holds dp[i-1][j-1] initially dp[i-1][0]
+            let mut prev = dp[0];
+            // non-empty s cannot match empty pattern
+            dp[0] = false;
 
             for j in 1..=n {
-                if p_chars[j - 1] == s_chars[i - 1] || p_chars[j - 1] == '.' {
-                    dp[curr][j] = dp[prev][j - 1];
-                } else if p_chars[j - 1] == '*' {
-                    dp[curr][j] = dp[curr][j - 2]
-                        || (dp[prev][j]
-                            && (s_chars[i - 1] == p_chars[j - 2] || p_chars[j - 2] == '.'));
+                // store old dp[j] = dp[i-1][j]
+                let temp = dp[j];
+
+                if p_bytes[j - 1] != b'*' {
+                    // single char match or '.'
+                    dp[j] = prev && (p_bytes[j - 1] == b'.' || p_bytes[j - 1] == s_bytes[i - 1]);
                 } else {
-                    dp[curr][j] = false;
+                    // '*' zero occurrences of p[j-2]
+                    let zero = dp[j - 2];
+                    // '*' one-or-more occurrences
+                    let one = temp && (p_bytes[j - 2] == b'.' || p_bytes[j - 2] == s_bytes[i - 1]);
+                    dp[j] = zero || one;
                 }
+
+                // update prev for next column
+                prev = temp;
             }
         }
 
-        dp[m % 2][n]
+        // final cell holds the answer
+        dp[n]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_010_1_empty_empty() {
+        let s = "".to_string();
+        let p = "".to_string();
+        assert!(Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_2_empty_star() {
+        let s = "".to_string();
+        let p = "a*".to_string();
+        assert!(Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_3_empty_dot_star() {
+        let s = "".to_string();
+        let p = ".*".to_string();
+        assert!(Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_4_nonempty_empty() {
+        let s = "a".to_string();
+        let p = "".to_string();
+        assert!(!Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_5_exact_match() {
+        let s = "abc".to_string();
+        let p = "abc".to_string();
+        assert!(Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_6_dot_match() {
+        let s = "abc".to_string();
+        let p = "a.c".to_string();
+        assert!(Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_7_star_zero() {
+        let s = "ab".to_string();
+        let p = "ac*b".to_string();
+        assert!(Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_8_star_multiple() {
+        let s = "aaa".to_string();
+        let p = "a*".to_string();
+        assert!(Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_9_no_match() {
+        let s = "ab".to_string();
+        let p = ".*c".to_string();
+        assert!(!Solution::is_match(s, p));
+    }
+
+    #[test]
+    fn test_010_10_cstar_a_star_b() {
+        let s = "aab".to_string();
+        let p = "c*a*b".to_string();
+        assert!(Solution::is_match(s, p));
     }
 }
