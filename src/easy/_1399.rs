@@ -36,14 +36,14 @@ impl Solution {
     //───────────────────────────────────────────────────────────────────────
     // Compute the digit-sum of a non-negative integer in base-10.
     //───────────────────────────────────────────────────────────────────────
-    fn digit_sum(mut x: i32) -> usize {
+    fn digit_sum(mut x: usize) -> usize {
         //·Initialize running sum.
         let mut sum: usize = 0;
 
         //·Extract decimal digits until x becomes 0.
         while x != 0 {
             //·Add least-significant digit to the sum.
-            sum += (x % 10) as usize;
+            sum += x % 10;
 
             //·Discard the processed digit.
             x /= 10;
@@ -62,7 +62,7 @@ impl Solution {
         //·Populate counters for every integer in 1..=n.
         for x in 1..=n {
             //·Compute digit sum (max 36).
-            let s: usize = Self::digit_sum(x);
+            let s: usize = Self::digit_sum(x as usize);
 
             //·Increment the appropriate bucket.
             cnt[s] += 1;
@@ -162,7 +162,6 @@ impl SolutionOpt {
 
         // Count how many buckets reach that maximum.
         let mut groups = 0;
-        
         for &c in &cnt[1..=36] {
             if c == max_size {
                 groups += 1;
