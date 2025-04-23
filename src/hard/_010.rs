@@ -165,6 +165,10 @@ impl SolutionAlt {
         // Base case: empty string matches empty pattern.
         dp[m][n] = true;
 
+        // Key Idea:
+        // Matching the empty string "" against pattern p[j..]
+        // that starts with "x*"
+        // is equivalent to skipping "x*" and trying to match p[j+2..].
         // Pre-fill for empty string matching 'x*' patterns.
         for j in (0..n).rev() {
             if j + 1 < n && pb[j + 1] == b'*' {
@@ -177,13 +181,26 @@ impl SolutionAlt {
             for j in (0..n).rev() {
                 // Check if current characters match or pattern is '.'.
                 let first_match: bool = (pb[j] == b'.') || (pb[j] == sb[i]);
-     
+
                 // Handle '*' wildcard.
                 if j + 1 < n && pb[j + 1] == b'*' {
-                    // Skip 'x*' or use one 'x'.
+                    // Key Idea
+                    // If:
+                    //   - The rest of the pattern after "x*" matches (→ skip case)
+                    // OR
+                    //   - The current character matches and the rest of the string matches
+                    //     with the same pattern (→ consume case),
+                    // Then:
+                    //   - s[i:] matches p[j:]
+
+                    // We match one occurrence of 'x' from s[i]
+                    // We stay at j in the pattern because '*' allows repeating 'x'
                     dp[i][j] = dp[i][j + 2] || (first_match && dp[i + 1][j]);
                 } else {
                     // No '*': must match current char and rest.
+                    // We only succeed at position (i, j) if:
+                    // 1. s[i] matches p[j]
+                    // 2. Th rest of the string matches the rest of the pattern.
                     dp[i][j] = first_match && dp[i + 1][j + 1];
                 }
             }
