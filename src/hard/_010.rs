@@ -211,6 +211,98 @@ impl SolutionAlt {
     }
 }
 
+/*
+Intuition:
+  Use recursion with HashMap memoization to cache
+  only visited (i,j) states and explore necessary branches.
+
+Algorithm:
+  1. Convert s,p to byte slices sb,pb.
+  2. Create HashMap<(usize,usize),bool> memo.
+  3. Define recursive dp(i,j):
+     a. Return cached if present.
+     b. If j == n, res = i == m.
+     c. Compute first_match.
+     d. If next is '*', res = dp(i,j+2)
+           || (first_match && dp(i+1,j));
+        else res = first_match && dp(i+1,j+1).
+     e. memo.insert((i,j),res).
+  4. Return dp(0,0).
+
+Time Complexity: O(m * n)
+Space Complexity: O(m * n) memo + recursion stack
+*/
+
+// Import HashMap for memoization
+use std::collections::HashMap;
+
+pub struct SolutionRecursive;
+
+impl SolutionRecursive {
+    /// Top-down regex match with HashMap memoization
+    pub fn is_match(s: String, p: String) -> bool {
+        // Convert s to a byte slice for indexing
+        let sb: &[u8] = s.as_bytes();
+
+        // Convert p to a byte slice for indexing
+        let pb: &[u8] = p.as_bytes();
+
+        // Length of the input string
+        let m: usize = sb.len();
+
+        // Length of the pattern string
+        let n: usize = pb.len();
+
+        // Memoization map: keys are (i,j) tuples
+        let mut memo: HashMap<(usize, usize), bool> = HashMap::new();
+
+        // Recursive helper: does sb[i..] match pb[j..]?
+        fn dp(
+            i: usize,
+            j: usize,
+            sb: &[u8],
+            pb: &[u8],
+            m: &usize,
+            n: &usize,
+            memo: &mut HashMap<(usize, usize), bool>,
+        ) -> bool {
+            // Return cached result if it exists
+            if let Some(&v) = memo.get(&(i, j)) {
+                return v;
+            }
+
+            // Will hold the computed result
+            let res: bool;
+            // If at end of pattern, match only if string done
+            if &j == n {
+                res = &i == m;
+            } else {
+                // Check if current chars match or pattern is '.'
+                let first_match: bool = (&i < m) && (pb[j] == b'.' || pb[j] == sb[i]);
+
+                // Handle '*' wildcard
+                if (&(j + 1) < n) && pb[j + 1] == b'*' {
+                    // Case 1: skip "x*"
+                    // Case 2: consume one "x" if first_match
+                    res = dp(i, j + 2, sb, pb, m, n, memo)
+                        || (first_match && dp(i + 1, j, sb, pb, m, n, memo));
+                } else {
+                    // No '*': must match current and rest
+                    res = first_match && dp(i + 1, j + 1, sb, pb, m, n, memo);
+                }
+            }
+
+            // Cache the result before returning
+            memo.insert((i, j), res);
+
+            res
+        }
+
+        // Start matching from the beginning of s and p
+        dp(0, 0, sb, pb, &m, &n, &mut memo)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
