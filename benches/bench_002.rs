@@ -2,6 +2,8 @@ use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use leetcode::medium::_002::Solution;
 use std::time::Duration;
 
+use leetcode::utils::list::*;
+
 /// Benchmark for Problem 002: Add Two Numbers (Linked List Sum)
 /// Group: "add_two_numbers_medium_002"
 /// Function: "add_two_numbers"
@@ -10,8 +12,8 @@ pub fn benchmark(c: &mut Criterion) {
     group.measurement_time(Duration::from_secs(3));
 
     // Prepare inputs: long lists to simulate large addition
-    let l1 = Solution::list_maker(vec![9; 1000]);
-    let l2 = Solution::list_maker(vec![1]);
+    let l1 = ListNode::list_maker(vec![9; 1000]);
+    let l2 = ListNode::list_maker(vec![1]);
 
     group.bench_function("add_two_numbers", |b| {
         b.iter(|| {

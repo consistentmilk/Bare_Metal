@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use leetcode::easy::_1002::Solution;
 
 pub fn benchmark(c: &mut Criterion) {
@@ -11,4 +11,3 @@ pub fn benchmark(c: &mut Criterion) {
 
 criterion_group!(group_easy_1002, benchmark);
 criterion_main!(group_easy_1002);
-
