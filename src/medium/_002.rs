@@ -32,6 +32,53 @@ impl Solution {
 
         head.next
     }
+
+    /// Unsafe micro-optimized version using a raw tail pointer
+    pub fn add_two_numbers_unsafe(
+        mut l1: Option<Box<ListNode>>,
+        mut l2: Option<Box<ListNode>>,
+    ) -> Option<Box<ListNode>> {
+        // Dummy head to simplify appends
+        let mut dummy: Box<ListNode> = Box::new(ListNode::new(0));
+        // Raw pointer to the last node for O(1) appends
+        let mut tail: *mut ListNode = &mut *dummy;
+        let mut carry: i32 = 0;
+
+        // Continue until both lists and carry are exhausted
+        while l1.is_some() || l2.is_some() || carry != 0 {
+            let mut sum: i32 = carry;
+
+            // Take digit from l1 if present
+            if let Some(mut node) = l1 {
+                sum += node.val;
+                l1 = node.next.take();
+            }
+
+            // Take digit from l2 if present
+            if let Some(mut node) = l2 {
+                sum += node.val;
+                l2 = node.next.take();
+            }
+
+            // Compute new carry and current digit
+            carry = sum / 10;
+            let digit: i32 = sum % 10;
+
+            // Allocate the next node
+            let mut new_box: Box<ListNode> = Box::new(ListNode::new(digit));
+            // Obtain raw pointer to the new node
+            let new_tail: *mut ListNode = &mut *new_box;
+
+            unsafe {
+                // Link the new node and advance the tail pointer
+                (*tail).next = Some(new_box);
+                tail = new_tail;
+            }
+        }
+
+        // Skip dummy and return real head
+        dummy.next
+    }
 }
 
 #[cfg(test)]
