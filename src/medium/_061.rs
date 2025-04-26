@@ -63,7 +63,7 @@ mod tests {
         let head: Option<Box<ListNode>> = list!(1, 2, 3, 4, 5);
         let k: i32 = 2;
         let expected: Vec<i32> = vec![4, 5, 1, 2, 3];
-        let res: Vec<i32> = ListNode::list_to_vec(Solution::rotate_right(head, k));
+        let res: Vec<i32> = ListNode::list_extract(Solution::rotate_right(head, k));
 
         assert_eq!(expected, res);
     }
@@ -73,7 +73,7 @@ mod tests {
         let head: Option<Box<ListNode>> = list!(0, 1, 2);
         let k: i32 = 4;
         let expected: Vec<i32> = vec![2, 0, 1];
-        let res: Vec<i32> = ListNode::list_to_vec(Solution::rotate_right(head, k));
+        let res: Vec<i32> = ListNode::list_extract(Solution::rotate_right(head, k));
 
         assert_eq!(expected, res);
     }
@@ -83,7 +83,7 @@ mod tests {
         let head: Option<Box<ListNode>> = list!(2, 3, 5, 7, 11);
         let k: i32 = 5;
         let expected: Vec<i32> = vec![2, 3, 5, 7, 11];
-        let res: Vec<i32> = ListNode::list_to_vec(Solution::rotate_right(head, k));
+        let res: Vec<i32> = ListNode::list_extract(Solution::rotate_right(head, k));
 
         assert_eq!(expected, res);
     }
@@ -93,7 +93,7 @@ mod tests {
         let head: Option<Box<ListNode>> = list!(2, 3, 5, 7, 11);
         let k: i32 = 0;
         let expected: Vec<i32> = vec![2, 3, 5, 7, 11];
-        let res: Vec<i32> = ListNode::list_to_vec(Solution::rotate_right(head, k));
+        let res: Vec<i32> = ListNode::list_extract(Solution::rotate_right(head, k));
 
         assert_eq!(expected, res);
     }

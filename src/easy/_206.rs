@@ -27,7 +27,7 @@ mod tests {
     fn test_206_1() {
         let l1: Option<Box<ListNode>> = list!(1, 2, 3, 4, 5);
         assert_eq!(
-            ListNode::list_to_vec(Solution::reverse_list(l1)),
+            ListNode::list_extract(Solution::reverse_list(l1)),
             vec![5, 4, 3, 2, 1]
         );
     }

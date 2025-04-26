@@ -11,16 +11,28 @@ impl ListNode {
         Self { val, next: None }
     }
 
-    pub fn list_to_vec(head: Option<Box<ListNode>>) -> Vec<i32> {
-        let mut ptr: Option<Box<ListNode>> = head;
-        let mut res: Vec<i32> = Vec::new();
+    pub fn list_maker(raw_arr: Vec<i32>) -> Option<Box<ListNode>> {
+        let mut head: ListNode = ListNode::new(0);
+        let mut ptr: &mut ListNode = &mut head;
 
-        while let Some(node) = ptr {
-            res.push(node.val);
-            ptr = node.next;
+        for num in raw_arr {
+            ptr.next = Some(Box::new(ListNode::new(num)));
+            ptr = ptr.next.as_mut().unwrap();
         }
 
-        res
+        head.next
+    }
+
+    pub fn list_extract(head: Option<Box<ListNode>>) -> Vec<i32> {
+        let mut ptr: Option<Box<ListNode>> = head;
+        let mut arr: Vec<i32> = vec![];
+
+        while let Some(node) = ptr.as_ref() {
+            arr.push(node.val);
+            ptr = node.next.clone();
+        }
+
+        arr
     }
 }
 
