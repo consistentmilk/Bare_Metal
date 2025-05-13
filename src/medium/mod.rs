@@ -69,6 +69,7 @@ pub mod _3163;
 pub mod _3164;
 pub mod _3208;
 pub mod _3306;
+pub mod _3342;
 pub mod _388;
 pub mod _390;
 pub mod _393;
