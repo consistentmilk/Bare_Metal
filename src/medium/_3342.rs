@@ -1,4 +1,66 @@
 /*
+/// 3342. Find Minimum Time to Reach Last Room II
+///
+/// Problem Statement:
+/// ------------------
+/// You are given an n × m grid of rooms (the dungeon), represented by a 2D array
+/// `moveTime` where `moveTime[i][j]` is the earliest second at which you are
+/// allowed to enter room (i, j).  You start at room (0, 0) at time t = 0.
+///
+/// Movement Rules:
+/// ---------------
+/// - You may move to any of the four adjacent rooms (up, down, left, right).
+/// - The time cost for moves alternates between 1 second and 2 seconds:
+///     • Your first move costs 1 second.
+///     • Your second move costs 2 seconds.
+///     • Your third move costs 1 second again, and so on.
+/// - You cannot enter a room before its `moveTime` threshold. If you arrive early,
+///   you must wait until t == `moveTime[i][j]` before completing the move.
+///
+/// Objective:
+/// ----------
+/// Return the minimum time (in seconds) required to reach the bottom‐right room
+/// (n - 1, m - 1), respecting both the alternating move costs and the earliest‐entry
+/// times given by `moveTime`.
+///
+/// Examples:
+/// ---------
+/// Example 1:
+/// ```text
+/// Input:  moveTime = [[0, 4],
+///                    [4, 4]]
+/// Output: 7
+/// Explanation:
+///  - At t = 4, make the first move (cost 1s) from (0,0) → (1,0), arriving at t = 5.
+///  - Next move costs 2s: depart at t = 5, arrive (1,0) → (1,1) at t = 7.
+///  - Total time = 7s.
+/// ```
+///
+/// Example 2:
+/// ```text
+/// Input:  moveTime = [[0, 0, 0, 0],
+///                    [0, 0, 0, 0]]
+/// Output: 6
+/// Explanation:
+///  - Move sequence costs: 1s, 2s, 1s, 2s …
+///  - Path: (0,0)->(1,0) @t=0→1, (1,0)->(1,1) @1→3,
+///          (1,1)->(1,2) @3→4, (1,2)->(1,3) @4→6.
+///  - Total time = 6s.
+/// ```
+///
+/// Example 3:
+/// ```text
+/// Input:  moveTime = [[0, 1],
+///                    [1, 2]]
+/// Output: 4
+/// ```
+///
+/// Constraints:
+/// ------------
+/// - 2 ≤ n = moveTime.length ≤ 750
+/// - 2 ≤ m = moveTime[i].length ≤ 750
+/// - 0 ≤ moveTime[i][j] ≤ 10⁹
+
 Intuition:
 We perform a modified Dijkstra's algorithm on the grid.
 Each cell has a required minimum wait time. Moving to a
