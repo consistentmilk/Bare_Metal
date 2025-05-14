@@ -104,11 +104,13 @@ pub struct Solution;
 #[derive(Eq, PartialEq)]
 // Define State to hold the time and coordinates of a cell
 struct State {
-    // The current accumulated time to reach this cell
+    /// The current accumulated time to reach this cell
     time: i32,
-    // The row index of this cell
+
+    /// The row index of this cell
     x: usize,
-    // The column index of this cell
+
+    /// The column index of this cell
     y: usize,
 }
 
@@ -126,6 +128,16 @@ impl PartialOrd for State {
         Some(self.cmp(other))
     }
 }
+
+impl State {
+    #[inline(always)]
+    pub fn new(time: i32, x: usize, y: usize) -> Self {
+        Self { time, x, y }
+    }
+}
+
+// Movement directions: right, down, left, up
+const DIRS: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
 impl Solution {
     // Compute minimal time to reach bottom-right corner
@@ -146,14 +158,7 @@ impl Solution {
         grid[0][0] = -1;
 
         // Push the starting position with time=0 into the heap
-        heap.push(State {
-            time: 0,
-            x: 0,
-            y: 0,
-        });
-
-        // Movement directions: right, down, left, up
-        const DIRS: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+        heap.push(State::new(0, 0, 0));
 
         // Continue processing until no states remain
         while let Some(State { time, x, y }) = heap.pop() {
@@ -197,16 +202,11 @@ impl Solution {
                 grid[nx][ny] = -1;
 
                 // Push the neighbor State onto the heap
-                heap.push(State {
-                    time: arrival,
-                    x: nx,
-                    y: ny,
-                });
+                heap.push(State::new(arrival, nx, ny));
             }
         }
 
-        // Panic if the destination is unreachable
-        unreachable!()
+        -1
     }
 }
 
