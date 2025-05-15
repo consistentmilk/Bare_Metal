@@ -206,7 +206,7 @@ impl Solution {
             }
         }
 
-        -1
+        unreachable!()
     }
 }
 
