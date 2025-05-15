@@ -76,6 +76,7 @@ impl Solution {
     // --------------------------------------------------------------
     // Fill dots between two anchors according to the pattern
     // --------------------------------------------------------------
+    #[inline(always)]
     fn fill_segment(
         buf: &mut [u8],
         left_idx: isize,
