@@ -19,6 +19,6 @@ tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 tracing-test = "0.2.4"
 
-[[bench]]
-name = "criterion_main"
-harness = false
+# [[bench]]
+# name = "criterion_main"
+# harness = false
