@@ -393,7 +393,6 @@ impl SolutionToken {
         dp[n]
     }
 
-    /// Builds the token array from raw pattern bytes
     #[inline(always)]
     fn build_token_array(pbytes: &[u8]) -> Vec<Token> {
         // Length of the raw pattern byte slice
@@ -426,7 +425,6 @@ impl SolutionToken {
         tokens
     }
 
-    /// Initializes the DP array for matching an empty string
     #[inline(always)]
     fn init_dp_array(tokens: &Vec<Token>, n: usize) -> Vec<bool> {
         // dp[j] will be true if the first j tokens can match the empty prefix
