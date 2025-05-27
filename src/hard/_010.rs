@@ -303,148 +303,97 @@ impl SolutionRecursive {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct Token {
-    /// Byte value of this pattern character (e.g., 'a', '.', etc.)
-    ch_byte: u8,
+pub struct SolutionToken;
 
-    /// True if this token represents `x*` (zero-or-more of `x`)
+pub struct Token {
+    cbyte: u8,
     is_star: bool,
 }
 
 impl Token {
-    /// Construct a new Token from a character byte and star flag
     #[inline(always)]
-    pub fn new(ch_byte: u8, is_star: bool) -> Self {
-        Self { ch_byte, is_star }
+    pub fn new(cbyte: u8, is_star: bool) -> Self {
+        Self { cbyte, is_star }
     }
 }
 
-pub struct SolutionToken;
-
 impl SolutionToken {
-    /// Returns true if `s` matches the regex pattern `p`
     pub fn is_match(s: String, p: String) -> bool {
         let sbytes: &[u8] = s.as_bytes();
         let pbytes: &[u8] = p.as_bytes();
 
-        // Tokenize the pattern, collapsing any `x*` pairs into single entries
-        let tokens: Vec<Token> = Self::build_token_array(pbytes);
+        let (n, tokens) = Self::build_token_vec(pbytes);
+        let mut dp: Vec<bool> = Self::init_dp_vec(&tokens, n);
 
-        // Number of tokens after collapsing
-        let n: usize = tokens.len();
-
-        // Initialize the DP array for the empty-string prefix case
-        let mut dp: Vec<bool> = Self::init_dp_array(&tokens, n);
-
-        // Iterate over each byte in the input string
-        for &char_byte in sbytes {
-            // `prev` holds dp[j-1] from the previous row (diagonal)
+        for &cbyte in sbytes {
             let mut prev: bool = dp[0];
-
-            // Tracks if any dp[j] becomes true in this row
             let mut any_true: bool = false;
-
-            // Non-empty string cannot match an empty pattern
             dp[0] = false;
 
-            // Walk through each token position j = 1..=n
-            for j in 1..=n {
-                // Save the old dp[j] before overwriting (for diagonal shift)
-                let old: bool = dp[j];
+            for i in 1..=n {
+                let old: bool = dp[i];
+                let token: &Token = &tokens[i - 1];
 
-                // Current token under consideration
-                let token: Token = tokens[j - 1];
-
-                // Check if current pattern char matches the string char
-                // True if token is '.' or matches exactly
-                let first_byte_match: bool = token.ch_byte == b'.' || token.ch_byte == char_byte;
-
-                // If this token is not a star, it must match exactly one char
                 if !token.is_star {
-                    // Consume one character: require prev=true and a match
-                    dp[j] = prev && first_byte_match;
+                    dp[i] = prev && Self::first_match(token, cbyte);
                 } else {
-                    // Star case: can match zero or one/more occurrences
-                    // Zero occurrences: skip this token pair
-                    let zero: bool = dp[j - 1];
+                    let zero: bool = dp[i - 1];
+                    let one: bool = old && Self::first_match(token, cbyte);
 
-                    // One or more: stay at dp[j] and consume one char
-                    let one: bool = old && first_byte_match;
-
-                    // Combine both possibilities
-                    dp[j] = zero || one;
+                    dp[i] = zero || one;
                 }
 
-                // Record if any position is true to allow early pruning
-                any_true |= dp[j];
-
-                // Shift diagonal for next iteration
+                any_true |= dp[i];
                 prev = old;
             }
 
-            // If no dp[j] is true, no prefix matches; we can exit early
             if !any_true {
                 return false;
             }
         }
 
-        // Final value dp[n] indicates full-string & full-pattern match
         dp[n]
     }
 
     #[inline(always)]
-    fn build_token_array(pbytes: &[u8]) -> Vec<Token> {
-        // Length of the raw pattern byte slice
+    fn build_token_vec(pbytes: &[u8]) -> (usize, Vec<Token>) {
         let n: usize = pbytes.len();
 
-        // Reserve capacity equal to pattern length for efficiency
         let mut tokens: Vec<Token> = Vec::with_capacity(n);
-
-        // Pointer to traverse the byte slice
         let mut ptr: usize = 0;
 
-        // Process until we consume all pattern bytes
         while ptr < n {
-            // Check if next byte is '*' (and not out-of-bounds)
-            if ptr + 1 < n && pbytes[ptr + 1] == b'*' {
-                // Collapse `x*` into a single Token(x, is_star=true)
+            if ((ptr + 1) < n) && (pbytes[ptr + 1] == b'*') {
                 tokens.push(Token::new(pbytes[ptr], true));
-
-                // Advance by two to skip both `x` and `*`
-                ptr += 2;
+                ptr = ptr + 2;
             } else {
-                // No star follows: single Token(x, is_star=false)
                 tokens.push(Token::new(pbytes[ptr], false));
-
-                // Advance by one to move past this character
-                ptr += 1;
+                ptr = ptr + 1;
             }
         }
 
-        tokens
+        (tokens.len(), tokens)
     }
 
     #[inline(always)]
-    fn init_dp_array(tokens: &Vec<Token>, n: usize) -> Vec<bool> {
-        // dp[j] will be true if the first j tokens can match the empty prefix
+    fn init_dp_vec(tokens: &Vec<Token>, n: usize) -> Vec<bool> {
         let mut dp: Vec<bool> = vec![false; n + 1];
-
-        // Empty pattern matches empty string
         dp[0] = true;
 
-        // Allow tokens of the form `x*` to match zero occurrences
-        for j in 1..=n {
-            if tokens[j - 1].is_star {
-                // A starred token can be skipped: inherit dp[j-1]
-                dp[j] = dp[j - 1];
+        for i in 1..=n {
+            if tokens[i - 1].is_star {
+                dp[i] = dp[i - 1];
             } else {
-                // Stop once we hit a non-star token
                 break;
             }
         }
 
         dp
+    }
+
+    #[inline(always)]
+    fn first_match(token: &Token, cbyte: u8) -> bool {
+        (token.cbyte == b'.') || (token.cbyte == cbyte)
     }
 }
 
